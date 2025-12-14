@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Moodi </title>
+
+  <!-- google fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+
+  <!--  CSS -->
+  <link rel="stylesheet" href="../CSS/mainStyle.css"> 
+<link rel="stylesheet" href="../CSS/index.css">  
+
+</head>
+<body>
+  <!-- top bar -->
+  <header class="topbar">
+    <div class="topbar-inner container">
+      <a href="#" class="brand" aria-label="Moodi home">
+        <span>moodi</span>
+      </a>
+      <div class="actions">
+        <a href="login.html" class="logout">log out</a>
+        <div class="bell" aria-label="notifications" role="button" tabindex="0">
+  
+          
+  <!-- bell icon -->
+     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+       <path d="M12 3a6 6 0 0 0-6 6v3.59l-1.29 1.3A1 1 0 0 0 5 16h14a1 1 0 0 0 .73-1.71L18 12.59V9a6 6 0 0 0-6-6Z" stroke="#334155" stroke-width="1.6"/>
+       <path d="M15 16a3 3 0 0 1-6 0" stroke="#334155" stroke-width="1.6"/>
+     </svg>
+
+     <div class="notif-box" id="notifBox">
+       <h4>Notifications</h4>
+         <ul>
+          <li><strong>Emily</strong> completed her weekly task.</li>
+          <li><strong>Daniel</strong> added a new emotion log.</li>
+          <li><strong>Liam</strong> has unread feedback.</li>
+          <li><strong>Sofia</strong> updated her report.</li>
+        </ul>
+     </div>
+    </div>
+  </div>
+</div>
+  </header>
+
+  <main class="container">
+    <!-- Hero -->
+    <section class="hero" aria-labelledby="hero-title">
+      <h1 id="hero-title">Welcome to moodi</h1>
+      <p>Every emotion tells a story. Let’s discover what they’re saying</p>
+    </section>
+
+    <!-- patients heading & search -->
+    <div class="section-head">
+      <h2>my patients</h2>
+      <label class="searchbar" aria-label="search patients by name or code">
+        <!-- magnifier -->
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <circle cx="11" cy="11" r="7" stroke="#64748b" stroke-width="1.6" />
+          <path d="M20 20L16.65 16.65" stroke="#64748b" stroke-width="1.6" stroke-linecap="round" />
+        </svg>
+        <input id="search" type="search" placeholder="search name / code" autocomplete="off"/>
+      </label>
+    </div>
+
+    <!-- carousel of cards -->
+    <section class="carousel-wrap" aria-label="patient cards">
+      <button class="arrow left" id="prev" aria-label="scroll left">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M15 6l-6 6 6 6" stroke="#334155" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+
+      <div class="carousel" id="rail">
+        <!-- JS will render the “Add new patient” card and all patient cards here -->
+      </div>
+
+      <button class="arrow right" id="next" aria-label="scroll right">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M9 6l6 6-6 6" stroke="#334155" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+    </section>
+
+    <div class="space"></div>
+  </main>
+
+  <script src="../JS/index.js"></script>
+</body>
+</html>

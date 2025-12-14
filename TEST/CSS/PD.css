@@ -1,0 +1,60 @@
+/* ===== Patient band ===== */
+.pdash-hero{
+  background:var(--band);
+  border-bottom:1px solid var(--line);
+}
+.pdash-hero .container{ padding: 8px 16px; }
+.pdash-hero h1{
+  margin:0; text-align:center;
+  font-size:36px; font-weight:700; padding:18px 0;
+}
+
+/* ===== Main fills remaining viewport ===== */
+.pdash-main{
+  flex:1 1 auto;                
+  display:flex;
+  flex-direction:column;
+}
+
+
+.pdash-inner{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  padding: 12px 0 20px;
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+}
+
+/* ===== Tabs ===== */
+.tabs{
+  display:flex; gap:12px; align-items:center;
+}
+.tab{
+  appearance:none;
+  border:1px solid var(--line);
+  background:#fff; color:var(--text);
+  padding:8px 14px; border-radius:10px;
+  font:inherit; cursor:pointer;
+  transition: background .15s ease, box-shadow .15s ease, border-color .15s ease;
+}
+.tab:hover, .tab:focus-visible{
+  background:var(--baby); outline:none;
+  box-shadow:0 0 0 3px rgba(14,165,233,.15);
+}
+.tab.active{
+  background:var(--baby);
+  border-color:#cfe6f8; font-weight:700;
+}
+
+/* ===== Content panel stretches ===== */
+.panel{
+  flex:1 1 auto;        /* <— THIS makes the white panel fill the rest */
+  min-height:0;         /* allow flex to control height */
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:18px;
+  overflow:auto;
+}

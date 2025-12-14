@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  
+  <title>sign up to moodi</title>
+
+<link rel="stylesheet" href="../CSS/signup.css"> 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+</head>
+
+<body>
+    <header class="topbar">
+    <div class="topbar-inner container">
+      <a href="index.html" class="brand" aria-label="Moodi home">
+        <span>moodi</span>
+      </a>
+      <div class="actions">
+        <a href="login.html" class="login">log in</a>
+
+       
+      </div>
+    </div>
+  </header>
+
+
+<main class="signup-page">
+
+  <h1 class="signup-title">sign up to moodi</h1>
+
+  <div class="signup-card">
+
+    <form id="signupForm" class="signup-form">
+
+      <div class="field">
+  <label>* Name:</label>
+  <input type="text" name="name" required>
+  <div class="field-error" data-for="name"></div>
+</div>
+
+<div class="field">
+  <label>* Email:</label>
+  <input type="email" name="email" required>
+  <div class="field-error" data-for="email"></div>
+</div>
+
+<div class="field">
+  <label>* Password:</label>
+
+  <div class="password-wrapper">
+  <input type="password" id="passwordField" name="password" required>
+
+  <span id="togglePassword" class="toggle-pass">
+      <i class="fa-solid fa-eye"></i>
+  </span>
+</div>
+
+  <div class="field-error" data-for="password"></div>
+</div>
+
+<div class="field">
+  <label>* Re-type password:</label>
+  <div class="password-wrapper">
+  <input type="password" id="confirmPasswordField" name="confirmPassword" required>
+
+  <span id="toggleConfirmPassword" class="toggle-pass">
+      <i class="fa-solid fa-eye"></i>
+  </span>
+</div>
+
+<div class="field-error" data-for="confirmPassword"></div>
+
+
+  <div class="field-error" data-for="confirmPassword"></div>
+</div>
+
+<div class="form-row">
+  <div class="field half">
+    <label>field of work:</label>
+    <select name="field">
+      <option value="">Select…</option>
+      <option>Child Therapist</option>
+      <option>School Counselor</option>
+      <option>Psychologist</option>
+    </select>
+  </div>
+
+  <div class="field half">
+    <label>* years of experience:</label>
+    <input type="number" name="experience" value="3" required>
+    <div class="field-error" data-for="experience"></div>
+  </div>
+</div>
+
+<div class="terms">
+  <label>
+    <input type="checkbox" name="terms">
+    I agree to the <a href="#">Terms of Use</a> and <a href="#">Privacy Policy</a>.
+  </label>
+  <div class="field-error" data-for="terms"></div>
+</div>
+
+      <button class="btn-primary">Sign up</button>
+
+    </form>
+
+  </div>
+
+</main>
+
+<script src="../JS/signup.js"></script>
+
+
+</body>
+</html>

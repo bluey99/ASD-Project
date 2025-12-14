@@ -1,0 +1,38 @@
+/* Dropdown container */
+.tab-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+/* Dropdown menu */
+.dropdown-menu {
+  display: none;
+  position: absolute;
+  top: 38px;
+  left: 0;
+  background: #fff;
+  border: 1px solid #d0d5dd;
+  border-radius: 10px;
+  padding: 6px 0;
+  z-index: 50;
+  min-width: 140px;
+}
+
+.dropdown-menu button {
+  width: 100%;
+  padding: 8px 14px;
+  background: none;
+  border: none;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+
+.dropdown-menu button:hover {
+  background: var(--baby);
+}
+
+/* Show on hover */
+.tab-dropdown:hover .dropdown-menu {
+  display: block;
+}

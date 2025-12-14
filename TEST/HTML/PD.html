@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>moodi – Patient</title>
+
+  <!-- Global CSS first, then page CSS -->
+  <link rel="stylesheet" href="../CSS/mainStyle.css" />
+  <link rel="stylesheet" href="../CSS/PD.css" />
+  <link rel="stylesheet" href="../CSS/tasks.css" />
+  <link rel="stylesheet" href="../CSS/dropdown.css" />
+</head>
+
+<body>
+  <!-- ===== Top bar ===== -->
+  <header class="topbar">
+    <div class="topbar-inner container">
+      <a href="index.html" class="brand" aria-label="Moodi home">
+        <span>moodi</span>
+      </a>
+
+      <div class="actions">
+        <a href="login.html" class="logout">log out</a>
+
+        <!-- Notification bell -->
+        <div class="bell" aria-label="notifications" role="button" tabindex="0">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+            <path d="M12 3a6 6 0 0 0-6 6v3.59l-1.29 1.3A1 1 0 0 0 5 16h14a1 1 0 0 0 .73-1.71L18 12.59V9a6 6 0 0 0-6-6Z" stroke="#334155" stroke-width="1.6"/>
+            <path d="M15 16a3 3 0 0 1-6 0" stroke="#334155" stroke-width="1.6"/>
+          </svg>
+
+          <div class="notif-box" id="notifBox">
+            <h4>Notifications</h4>
+            <ul>
+              <li><strong>Emily</strong> completed her weekly task.</li>
+              <li><strong>Daniel</strong> added a new emotion log.</li>
+              <li><strong>Liam</strong> has unread feedback.</li>
+              <li><strong>Sofia</strong> updated her report.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===== Patient name band ===== -->
+  <section class="pdash-hero" aria-labelledby="patientName">
+    <div class="container">
+      <h1 id="patientName">Patient</h1>
+    </div>
+  </section>
+
+  <!-- ===== Main content ===== -->
+  <main class="pdash-main">
+    <div class="container pdash-inner">
+
+      <!------------------ Tabs --------------------->
+      <nav class="tabs" role="tablist" aria-label="Patient sections">
+        
+        <button class="tab active" role="tab" data-tab="overview">overview</button>
+
+        <!-- TASKS dropdown -->
+        <div class="tab-dropdown">
+          <button class="tab" role="tab" data-tab="tasks">
+            tasks ▾
+          </button>
+          <div class="dropdown-menu">
+            <button data-action="viewTasks">View tasks</button>
+            <button data-action="addTask">Add a task</button>
+          </div>
+        </div>
+
+        <button class="tab" role="tab" data-tab="reports">reports</button>
+
+        <!-- FEEDBACKS dropdown -->
+        <div class="tab-dropdown">
+          <button class="tab" role="tab" data-tab="feedbacks">
+            feedbacks ▾
+          </button>
+          <div class="dropdown-menu">
+            <button data-action="viewFeedbacks">View feedbacks</button>
+            <button data-action="addFeedback">Add feedback</button>
+          </div>
+        </div>
+      </nav>
+
+      <!-- Content panel -->
+      <section id="panel" class="panel" aria-live="polite">overview</section>
+
+    </div>
+  </main>
+
+  <!-- Page JS -->
+  <script src="../JS/PD.js" defer></script>
+
+  <!-- tasks -->
+  <script src="../JS/tasksData.js"></script>
+  <script src="../JS/tasks.js"></script>
+
+  <!-- feedbacks -->
+  <script src="../JS/feedbackData.js"></script>
+  <script src="../JS/feedback.js"></script>
+
+  <script src="../JS/dropdown.js"></script>
+</body>
+</html>

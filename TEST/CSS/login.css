@@ -1,0 +1,174 @@
+:root{
+  --bg:#eaf6ff;
+  --band:#dff1fb;
+  --text:#0f172a;
+  --muted:#64748b;
+  --line:#d9e4ef;
+  --card:#ffffff;
+  --topbar-h: 64px;
+  --baby:#eaf6ff;
+}
+
+/* Global page style */
+body {
+  margin: 0;
+  font-family: "Poppins", sans-serif;
+  background: radial-gradient(circle at top, #eaf6ff, #d7ecfc 60%, #c2def8);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+.main-area h1 {
+  font-size: 32px;
+  font-weight: 600;
+  color: #0f172a; /* same dark text as sign-up */
+  text-align: center;
+  margin-top: 40px;
+  margin-bottom: 30px;
+  text-transform: lowercase; /* matches “sign up to moodi” style */
+  letter-spacing: 0.5px;
+   text-transform: lowercase;
+}
+
+
+/* Top bar */
+.topbar{
+  height:var(--topbar-h);
+  background:var(--card);
+  border-bottom:1px solid var(--line);
+  position:sticky;
+  top:0;
+  z-index:50;
+}
+.topbar-inner{
+  height:var(--topbar-h);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+
+.brand{
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  text-decoration:none;
+  color:var(--text);
+  font-weight:700;
+  font-size:20px;
+}
+.brand-badge{
+  width:32px; height:32px;
+  display:grid; place-items:center;
+  border-radius:8px;
+  background:#0f172a; color:#fff;
+  font-weight:800;
+}
+.actions{ display:flex; align-items:center; gap:14px; }
+.logout{ color:var(--muted); text-decoration:none; font-weight:500; }
+.logout:hover{ color:var(--text); }
+
+
+/* Login card */
+.login-card {
+  width: 350px;
+  background: #ffffff;
+  margin: 0 auto;
+  padding: 35px;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+}
+
+label {
+  display: block;
+  text-align: left;
+  font-size: 12px;
+  margin-bottom: 10px;
+  color: #555;
+}
+
+input {
+  width: 100%;
+  padding: 8px;
+  margin-top: 4px;
+  border: 1px solid #999;
+  border-radius: 3px;
+}
+
+.forgot {
+  font-size: 12px;
+  display: block;
+  margin-top: 5px;
+  margin-bottom: 15px;
+  text-align: left;
+  color: #4a6fa5;
+  text-decoration: none;
+}
+
+.login-btn {
+  width: 100%;
+  padding: 12px;
+  background-color: #0c1325; /* dark navy like your Sign up button */
+  color: #ffffff;
+  border: none;
+  cursor: pointer;
+  border-radius: 10px;  /* same smooth rounded shape */
+  font-size: 15px;
+  font-weight: 500;
+  transition: 0.2s;
+}
+
+.login-btn:hover {
+  background-color: #0a0f1f; /* slightly darker hover */
+}
+
+label {
+  font-size: 14px;
+  color: #334155;
+  font-weight: 500;
+  margin-bottom: 6px;
+  display: block;
+}
+input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-size: 14px;
+}
+.forgot {
+  color: #475569;
+  font-size: 13px;
+  margin-bottom: 20px;
+  display: inline-block;
+}
+
+.error {
+  color: #dc2626;
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+
+.password-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.password-wrapper input {
+  width: 100%;
+  padding-right: 13px; /* space for icon */
+}
+
+.toggle-pass {
+  position: absolute;
+  right:-5%;
+  top: 40%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  font-size: 13px;
+  color: #64748b;
+  user-select: none;
+}
+
+.toggle-pass:hover {
+  color: #0f172a;
+}

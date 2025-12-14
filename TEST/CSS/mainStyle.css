@@ -1,0 +1,96 @@
+/* ===== Base / Variables ===== */
+:root{
+  --bg:#eaf6ff;
+  --band:#dff1fb;
+  --text:#0f172a;
+  --muted:#64748b;
+  --line:#d9e4ef;
+  --card:#ffffff;
+  --topbar-h: 64px;
+  --baby:#eaf6ff;
+}
+
+*{ box-sizing:border-box; }
+
+html, body { height: 100%; }
+body{
+  margin:0;
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  background:var(--bg);
+  color:var(--text);
+  font-family:"Poppins",system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+}
+
+.container{
+  max-width:none;
+  margin:0 auto;
+  padding:0 24px;
+
+}
+
+/* ===== Topbar ===== */
+.topbar{
+  height:var(--topbar-h);
+  background:var(--card);
+  border-bottom:1px solid var(--line);
+  position:sticky;
+  top:0;
+  z-index:50;
+}
+.topbar-inner{
+  height:var(--topbar-h);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+
+.brand{
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  text-decoration:none;
+  color:var(--text);
+  font-weight:700;
+  font-size:20px;
+}
+.brand-badge{
+  width:32px; height:32px;
+  display:grid; place-items:center;
+  border-radius:8px;
+  background:#0f172a; color:#fff;
+  font-weight:800;
+}
+.actions{ display:flex; align-items:center; gap:14px; }
+.logout{ color:var(--muted); text-decoration:none; font-weight:500; }
+.logout:hover{ color:var(--text); }
+
+/* ===== Bell + Notifications ===== */
+.bell{
+  position:relative;
+  display:grid; place-items:center;
+  width:36px; height:36px;
+  border-radius:50%;
+  background:#eef2f7;
+  cursor:pointer;
+}
+.notif-box{
+  position:absolute; top:46px; right:0;
+  width:280px; background:#fff;
+  border:1px solid var(--line);
+  border-radius:12px;
+  box-shadow:0 6px 20px rgba(0,0,0,.08);
+  padding:10px 0; display:none; z-index:999;
+}
+.notif-box.show{ display:block; }
+.notif-box h4{
+  font-size:15px; font-weight:600;
+  padding:0 14px 6px;
+  border-bottom:1px solid var(--line);
+  margin:0 0 6px;
+}
+.notif-box ul{ list-style:none; margin:0; padding:0; max-height:240px; overflow-y:auto; }
+.notif-box li{ padding:8px 14px; font-size:14px; color:var(--text); border-bottom:1px solid #f1f5f9; line-height:1.4; }
+.notif-box li:last-child{ border-bottom:none; }
+.notif-box li:hover{ background:#f8fafc; }

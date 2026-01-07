@@ -1,0 +1,117 @@
+<!-- ../HTML/overview.html -->
+<section class="ov">
+  <header class="ov-head">
+    <div>
+      <h2 class="ov-title">Overview</h2>
+      <p class="ov-sub">Patient profile & account actions</p>
+    </div>
+
+    <div class="ov-actions">
+      <button class="btn-soft" id="btnRefresh" type="button" title="Refresh">↻ Refresh</button>
+    </div>
+  </header>
+
+  <!-- Top cards -->
+  <div class="ov-grid top">
+    <!-- Status 
+    <article class="card stat">
+      <div class="stat-label">Status</div>
+      <div class="stat-value">
+        <span class="pill" id="ovStatusPill">—</span>
+      </div>
+      <div class="hint" id="ovCreatedAt">Created: —</div>
+    </article>-->
+
+    <!-- Patient (only full name) -->
+    <article class="card stat">
+      <div class="stat-label">Patient</div>
+      <div class="stat-value" id="ovName">—</div>
+      <div class="hint">Profile</div>
+    </article>
+
+    <!-- ID card (custom title + label) -->
+    <article class="card stat">
+      <div class="stat-label"><strong>Patient ID</strong></div>
+      <div class="stat-value mono" id="ovChildID">—</div>
+      <div class="hint"><span class="muted">Parent ID:</span> <span class="mono" id="ovParentIDInline">—</span></div>
+    </article>
+  </div>
+
+  <!-- Main content -->
+  <div class="ov-grid main">
+    <!-- Patient details -->
+    <article class="card section">
+      <div class="section-head">
+        <h3>Patient details</h3>
+        <span class="mini" id="ovAgeMini">Age: —</span>
+      </div>
+
+      <div class="kv">
+        <div class="row">
+          <div class="k">Full name</div>
+          <div class="v" id="ovFullName">—</div>
+        </div>
+
+        <div class="row">
+          <div class="k">Patient ID</div>
+          <div class="v mono" id="ovChildID2">—</div>
+        </div>
+
+        <div class="row">
+          <div class="k">Parent ID</div>
+          <div class="v mono" id="ovParentID2">—</div>
+        </div>
+
+        <div class="row">
+          <div class="k">Age</div>
+          <div class="v" id="ovAge">—</div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="btn-row">
+        <button class="btn-soft" id="copyChildID" type="button">Copy patient ID</button>
+        <button class="btn-soft" id="copyParentID" type="button">Copy parent ID</button>
+      </div>
+
+      <p class="note">
+        Tip: Search on the home page by <strong>name</strong> or <strong>Patient ID</strong>.
+      </p>
+    </article>
+
+    <!-- App account -->
+    <article class="card section">
+      <div class="section-head">
+        <h3>App account</h3>
+      </div>
+
+      <div class="kv">
+        <div class="row">
+          <div class="k">Username</div>
+          <div class="v mono" id="ovUsername">—</div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="security-box">
+        <button class="btn-primary" id="btnResetPin" type="button">Reset PIN</button>
+
+        <div class="pin-box">
+          <div class="pin-label">New PIN (one-time)</div>
+          <div class="pin-value mono" id="newPin">—</div>
+
+          <div class="btn-row">
+            <button class="btn-soft" id="copyPin" type="button" disabled>Copy PIN</button>
+            <button class="btn-ghost" id="hidePin" type="button" disabled>Hide</button>
+          </div>
+
+          <div class="hint" id="pinHint">Press “Reset PIN” to generate a new PIN.</div>
+        </div>
+      </div>
+
+      <div class="toast" id="toast" aria-live="polite"></div>
+    </article>
+  </div>
+</section>

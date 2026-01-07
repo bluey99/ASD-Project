@@ -1,0 +1,95 @@
+.addp-wrap { padding: 28px 0; }
+.addp-title { font-size: 34px; font-weight: 800; margin: 12px 0 6px; text-align: center; }
+.addp-sub { text-align: center; color: #64748b; margin-bottom: 20px; }
+
+.card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  padding: 18px;
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.06);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.field label { display: block; font-weight: 700; margin-bottom: 6px; color: #0f172a; }
+.field input {
+  width: 100%;
+  padding: 12px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  outline: none;
+  font-family: inherit;
+}
+.field input:focus { border-color: #94a3b8; }
+
+.row {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+
+.status { color: #64748b; font-size: 14px; }
+
+.credentials {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.cred {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 12px;
+  display: grid;
+  gap: 8px;
+}
+
+.muted { font-size: 12px; color: #64748b; }
+.mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New"; font-weight: 800; }
+
+.btn {
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  padding: 10px 14px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 700;
+}
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.btn.primary {
+  background: #085F63;
+  color: white;
+  border-color: #085F63;
+}
+
+.btn.small { padding: 8px 10px; font-size: 13px; justify-self: start; }
+
+.modal::backdrop { background: rgba(2, 6, 23, 0.5); }
+.modal-box {
+  width: min(560px, 92vw);
+  border-radius: 16px;
+  padding: 18px;
+  border: 1px solid #e2e8f0;
+}
+.modal-body { display: grid; gap: 6px; color: #0f172a; }
+.modal-body hr { border: none; border-top: 1px solid #e2e8f0; margin: 10px 0; }
+.hint { font-size: 12px; color: #64748b; margin-top: 6px; }
+
+.modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 14px; }
+
+@media (max-width: 780px) {
+  .grid { grid-template-columns: 1fr; }
+  .credentials { grid-template-columns: 1fr; }
+}

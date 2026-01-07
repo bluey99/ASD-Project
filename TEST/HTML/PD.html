@@ -10,6 +10,8 @@
   <link rel="stylesheet" href="../CSS/PD.css" />
   <link rel="stylesheet" href="../CSS/tasks.css" />
   <link rel="stylesheet" href="../CSS/dropdown.css" />
+  <link rel="stylesheet" href="../CSS/overview.css">
+
 </head>
 
 <body>
@@ -44,12 +46,12 @@
     </div>
   </header>
 
-  <!-- ===== Patient name band ===== -->
+  <!-- ===== Patient name band ===== 
   <section class="pdash-hero" aria-labelledby="patientName">
     <div class="container">
       <h1 id="patientName">Patient</h1>
     </div>
-  </section>
+  </section>-->
 
   <!-- ===== Main content ===== -->
   <main class="pdash-main">
@@ -91,18 +93,35 @@
     </div>
   </main>
 
-  <!-- Page JS -->
+  <!-- Page JS 
   <script src="../JS/PD.js" defer></script>
 
-  <!-- tasks -->
+   tasks 
   <script src="../JS/tasksData.js"></script>
   <script src="../JS/tasks.js"></script>
 
-  <!-- feedbacks -->
+   feedbacks 
   <script src="../JS/feedbackData.js"></script>
   <script src="../JS/feedback.js"></script>
 
   <script src="../JS/dropdown.js"></script>
   <script type="module" src="../JS/firebase.js"></script>
+    <script type="module" src="../JS/index.js"></script>-->
+
+    <!-- dropdown + main PD logic -->
+  <script src="../JS/dropdown.js" defer></script>
+  <script src="../JS/PD.js" defer></script>
+
+  <!-- ✅ tasks from Firebase -->
+  <script type="module" src="../JS/tasks.js"></script>
+
+  <!-- feedbacks stay same -->
+  <script src="../JS/feedbackData.js" defer></script>
+  <script src="../JS/feedback.js" defer></script>
+</body>
+</html>
+
+
+
 </body>
 </html>

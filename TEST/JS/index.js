@@ -1,21 +1,19 @@
-// patients list (temporary)
-const patients = [
-  "Emily",
-  "Daniel",
-  "Liam",
-  "Sofia",
-  "Noah",
-  "Olivia",
-  "Ethan",
-  "Ava",
-  "Mason",
-];
+import { db } from "./firebase.js";
+import {
+  collection,
+  getDocs,
+  query,
+  where
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// create a short auto code from name + index
+// ====== Global list from Firestore ======
+let patients = []; // [{id, name, code, pin, parentId}]
+
+// create a short auto code from name + index (fallback if Firestore has no code)
 const makeCode = (name, idx) =>
   (name.slice(0, 2) + String(idx + 1).padStart(2, "0")).toUpperCase();
 
-//  SVGs 
+// SVGs
 const personSVG = `
   <svg width="36" height="36" viewBox="0 0 24 24" fill="none" aria-hidden="true">
     <circle cx="12" cy="8" r="3.2" stroke="#334155" stroke-width="1.6"></circle>
@@ -29,35 +27,22 @@ const addPersonSVG = `
   </svg>
 `;
 
-//  card builders 
+// card builders
 function buildAddCard() {
   const article = document.createElement("article");
   article.className = "card add";
-  article.innerHTML = 
-  `<div class="icon" aria-hidden="true">${addPersonSVG}</div>
-    <div class="name">add new patient</div> `;
+  article.innerHTML = `
+    <div class="icon" aria-hidden="true">${addPersonSVG}</div>
+    <div class="name">add new patient</div>
+  `;
   article.setAttribute("role", "button");
   article.setAttribute("tabindex", "0");
-  return article;
-}
 
-function buildPatientCard(name, code) {
-  const article = document.createElement("article");
-  article.className = "card";
-  article.setAttribute("role", "button");
-  article.setAttribute("tabindex", "0");
-  article.innerHTML = 
-  ` <div class="icon" aria-hidden="true">${personSVG}</div>
-    <div class="name">${name}</div>
-    <div class="sub">${code || "code"}</div>`;
-
-  //   go to the PDashboard.html page
+  // OPTIONAL: link to signup page for adding new child (change if you have another page)
   article.addEventListener("click", () => {
-    window.location.href = `PD.html?name=${encodeURIComponent(name)}`;
-
+window.location.href = "addPatient.html";
   });
 
-  // keyboard accessibility (Enter or Space)
   article.addEventListener("keypress", (e) => {
     if (e.key === "Enter" || e.key === " ") article.click();
   });
@@ -65,41 +50,69 @@ function buildPatientCard(name, code) {
   return article;
 }
 
-//  render logic 
+function buildPatientCard(name, code, childDocId) {
+  const article = document.createElement("article");
+  article.className = "card";
+  article.setAttribute("role", "button");
+  article.setAttribute("tabindex", "0");
+
+  article.innerHTML = `
+    <div class="icon" aria-hidden="true">${personSVG}</div>
+    <div class="name">${name}</div>
+    <div class="sub">${code || ""}</div>
+  `;
+
+  article.addEventListener("click", () => {
+    window.location.href = `PD.html?childId=${encodeURIComponent(childDocId)}`;
+  });
+
+  article.addEventListener("keypress", (e) => {
+    if (e.key === "Enter" || e.key === " ") article.click();
+  });
+
+  return article;
+}
+
+// render logic
 function renderCards(list) {
   const rail = document.getElementById("rail");
   if (!rail) return;
-  rail.innerHTML = "";
 
-  // always show the "Add new patient" card first
+  rail.innerHTML = "";
   rail.appendChild(buildAddCard());
 
-  // then the patient cards
   const frag = document.createDocumentFragment();
-  list.forEach((name, idx) => {
-    const code = makeCode(name, idx);
-    frag.appendChild(buildPatientCard(name, code));
+  list.forEach((child, idx) => {
+    const name = child.name || "Unnamed";
+    const code = child.code || makeCode(name, idx);
+    frag.appendChild(buildPatientCard(name, code, child.id));
   });
+
   rail.appendChild(frag);
 }
 
-// search 
+// search
 function setupSearch() {
   const input = document.getElementById("search");
   if (!input) return;
 
   const doFilter = () => {
     const q = input.value.trim().toLowerCase();
+
     const filtered = q
-      ? patients.filter((n) => n.toLowerCase().includes(q))
+      ? patients.filter((p) =>
+          (p.name || "").toLowerCase().includes(q) ||
+          (p.code || "").toLowerCase().includes(q)
+        )
       : patients;
+
     renderCards(filtered);
   };
 
   input.addEventListener("input", doFilter);
 }
 
-// carousel arrows 
+// carousel arrows
 function setupArrows() {
   const rail = document.getElementById("rail");
   const prev = document.getElementById("prev");
@@ -107,7 +120,6 @@ function setupArrows() {
   if (!rail || !prev || !next) return;
 
   function cardStep() {
-    //  scroll step: one card width + gap
     const firstCard = rail.querySelector(".card");
     const w = firstCard ? firstCard.getBoundingClientRect().width : 280;
     return Math.round(w + 16);
@@ -122,29 +134,61 @@ function setupArrows() {
   });
 }
 
-//  Notification dropdown toggle 
-document.addEventListener("DOMContentLoaded", () => {
+// Notification dropdown toggle
+function setupNotifications() {
   const bell = document.querySelector(".bell");
   const notifBox = document.getElementById("notifBox");
 
   if (bell && notifBox) {
     bell.addEventListener("click", (e) => {
-      e.stopPropagation(); // don’t trigger body click
+      e.stopPropagation();
       notifBox.classList.toggle("show");
     });
 
-    // close the box when clicking anywhere else
     document.addEventListener("click", (e) => {
       if (!bell.contains(e.target)) {
         notifBox.classList.remove("show");
       }
     });
   }
-});
+}
 
-// Init 
+// ====== Firestore load ======
+async function loadChildrenFromFirestore() {
+  try {
+    // You already store role: "child" in documents, so we filter by that
+    const q = collection(db, "childrenn");   // get ALL children docs
+    const snap = await getDocs(q);
+
+    patients = snap.docs.map((doc) => {
+      const d = doc.data();
+      return {
+        id: doc.id,
+        name: d.name || "Unnamed",
+        parentID: d.parentID || "",
+        pin: d.pinHash || "",
+        code: d.childId || "" // optional if you store it later
+      };
+    });
+
+    renderCards(patients);
+    setupSearch();
+    setupArrows();
+
+    console.log("Loaded children ", patients);
+  } catch (err) {
+    console.error("Failed to load children ", err);
+
+    // fallback: show empty list but still show add card
+    patients = [];
+    renderCards(patients);
+    setupSearch();
+    setupArrows();
+  }
+}
+
+// Init
 document.addEventListener("DOMContentLoaded", () => {
-  renderCards(patients);
-  setupSearch();
-  setupArrows();
+  setupNotifications();
+  loadChildrenFromFirestore();
 });

@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>moodi – Add Patient</title>
+
+  <link rel="stylesheet" href="../CSS/mainStyle.css" />
+  <link rel="stylesheet" href="../CSS/addPatient.css" />
+</head>
+
+<body>
+  <!-- Top bar -->
+  <header class="topbar">
+    <div class="topbar-inner container">
+      <a href="index.html" class="brand"><span>moodi</span></a>
+      <div class="actions">
+        <a href="index.html" class="logout">back</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="container addp-wrap">
+    <h1 class="addp-title">Add New Patient</h1>
+    <p class="addp-sub">
+      Enter the patient details. The system will generate a username and PIN to give the child.
+    </p>
+
+    <section class="card">
+      <form id="addPatientForm" class="grid">
+        <div class="field">
+          <label>Full name</label>
+          <input id="fullName" type="text" placeholder="e.g., Leo Messi" required />
+        </div>
+        
+        <div class="field">
+          <label>Birthdate</label>
+          <input id="birthdate" type="date" required />
+        </div>
+
+        <div class="field">
+  <label>Child ID (9 digits)</label>
+  <input id="childID" type="text" inputmode="numeric" maxlength="9"
+         placeholder="123456789" required />
+</div>
+
+ 
+
+<div class="field">
+  <label>Parent ID (9 digits)</label>
+  <input id="parentID" type="text" inputmode="numeric" maxlength="9"
+         placeholder="123456789" required />
+</div>
+
+
+       
+
+        <div class="row">
+          <button type="button" id="btnGenerate" class="btn primary">Generate credentials</button>
+          <button type="submit" id="btnCreate" class="btn" disabled>Create patient</button>
+          <span id="status" class="status"></span>
+        </div>
+
+        <div class="credentials">
+          <div class="cred">
+            <div class="muted">Generated username</div>
+            <div id="genUsername" class="mono">—</div>
+            <button type="button" id="copyUsername" class="btn small" disabled>Copy</button>
+          </div>
+
+          <div class="cred">
+            <div class="muted">Generated PIN (one-time)</div>
+            <div id="genPin" class="mono">—</div>
+            <button type="button" id="copyPin" class="btn small" disabled>Copy</button>
+          </div>
+        </div>
+      </form>
+    </section>
+
+    <!-- Confirmation Modal -->
+    <dialog id="confirmModal" class="modal">
+      <div class="modal-box">
+        <h3>Confirm patient creation</h3>
+        <div class="modal-body">
+          <div><b>Full name:</b> <span id="cName"></span></div>
+          <div><b>Child ID:</b> <span id="cChildID"></span></div>
+          <div><b>Birthdate:</b> <span id="cBirthdate"></span></div>
+          <div><b>Parent ID:</b> <span id="cParentID"></span></div>
+          <hr />
+          <div><b>Username:</b> <span id="cUsername" class="mono"></span></div>
+          <div><b>PIN:</b> <span id="cPin" class="mono"></span></div>
+          <p class="hint">PIN will be stored as a hash in Firestore (safer). You can only view it now.</p>
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn" id="cancelModal">Cancel</button>
+          <button class="btn primary" id="confirmCreate">Confirm & Create</button>
+        </div>
+      </div>
+    </dialog>
+  </main>
+
+  <script type="module" src="../JS/addPatient.js"></script>
+</body>
+</html>

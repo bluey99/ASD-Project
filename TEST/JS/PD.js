@@ -58,7 +58,7 @@ document.addEventListener("DOMContentLoaded", () => {
     panel.innerHTML = `
       <div style="padding:18px">
         <h2 style="margin:0 0 8px 0">Reports</h2>
-        <p style="margin:0;color:#64748b">Reports will appear here.</p>
+        <p style="margin:0;color:#64748b">Reports will appear here!</p>
       </div>
     `;
   }

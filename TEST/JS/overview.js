@@ -3,13 +3,15 @@ import { db } from "./firebase.js";
 import {
   doc,
   getDoc,
-  updateDoc
+  updateDoc,
+  collection,
+  query,
+  where,
+  getDocs,
+  limit
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 /* ---------- helpers ---------- */
-function getChildDocIdFromUrl() {
-  return new URLSearchParams(window.location.search).get("childId");
-}
 const $ = (id) => document.getElementById(id);
 
 function showToast(msg) {
@@ -56,9 +58,7 @@ function calculateAgeYM(birthdateStr) {
   let years = today.getFullYear() - birth.getFullYear();
   let months = today.getMonth() - birth.getMonth();
 
-  if (today.getDate() < birth.getDate()) {
-    months--;
-  }
+  if (today.getDate() < birth.getDate()) months--;
 
   if (months < 0) {
     years--;
@@ -83,17 +83,40 @@ async function copyText(text) {
   await navigator.clipboard.writeText(text);
 }
 
+/* ---------- IMPORTANT FIX ----------
+   Allow URL param childId to be:
+   1) Firestore doc id (letters/numbers)
+   2) 9-digit patient ID (field: childID)
+------------------------------------ */
+async function getChildDocRefFromUrl() {
+  const param = new URLSearchParams(window.location.search).get("childId");
+  if (!param) return null;
+
+  // if param is 9 digits => search by field childID
+  if (/^\d{9}$/.test(param)) {
+    const qRef = query(
+      collection(db, "childrenn"),
+      where("childID", "==", param),
+      limit(1)
+    );
+    const snap = await getDocs(qRef);
+    if (snap.empty) return null;
+    return snap.docs[0].ref; // DocumentReference
+  }
+
+  // otherwise treat as firestore doc id
+  return doc(db, "childrenn", param);
+}
+
 /* ---------- MAIN ---------- */
 async function loadOverview() {
-  const childDocId = getChildDocIdFromUrl();
-  if (!childDocId) {
-    showToast("Missing childId in URL.");
+  const ref = await getChildDocRefFromUrl();
+  if (!ref) {
+    showToast("Missing/invalid childId in URL.");
     return;
   }
 
-  const ref = doc(db, "childrenn", childDocId);
   const snap = await getDoc(ref);
-
   if (!snap.exists()) {
     showToast("Patient not found.");
     return;
@@ -103,22 +126,30 @@ async function loadOverview() {
 
   /* --- top cards --- */
   setPill(d.status || "active");
-  $("ovCreatedAt").textContent = `Created: ${formatCreatedAt(d.createdAt)}`;
-  $("ovName").textContent = d.name || "—";
-  $("ovChildID").textContent = d.childID || "—";
-  $("ovParentIDInline").textContent = d.parentID || "—";
+
+  const createdEl = $("ovCreatedAt");
+  if (createdEl) createdEl.textContent = `Created: ${formatCreatedAt(d.createdAt)}`;
+
+  const nameEl = $("ovName");
+  if (nameEl) nameEl.textContent = d.name || "—";
+
+  const childIdEl = $("ovChildID");
+  if (childIdEl) childIdEl.textContent = d.childID || "—";
+
+  const parentInlineEl = $("ovParentIDInline");
+  if (parentInlineEl) parentInlineEl.textContent = d.parentID || "—";
 
   /* --- patient details --- */
-  $("ovFullName").textContent = d.name || "—";
-  $("ovChildID2").textContent = d.childID || "—";
-  $("ovParentID2").textContent = d.parentID || "—";
+  $("ovFullName") && ($("ovFullName").textContent = d.name || "—");
+  $("ovChildID2") && ($("ovChildID2").textContent = d.childID || "—");
+  $("ovParentID2") && ($("ovParentID2").textContent = d.parentID || "—");
 
   const ageYM = calculateAgeYM(d.birthdate);
-  $("ovAge").textContent = ageYM;
-  $("ovAgeMini").textContent = `Age: ${ageYM}`;
+  $("ovAge") && ($("ovAge").textContent = ageYM);
+  $("ovAgeMini") && ($("ovAgeMini").textContent = `Age: ${ageYM}`);
 
   /* --- app account --- */
-  $("ovUsername").textContent = d.username || "—";
+  $("ovUsername") && ($("ovUsername").textContent = d.username || "—");
 
   /* --- copy buttons --- */
   $("copyChildID")?.addEventListener("click", async () => {
@@ -146,12 +177,14 @@ async function loadOverview() {
       const newPin = randomPin6();
       const pinHash = await sha256Hex(newPin);
 
+      // update Firestore with new hash (overwrite old)
       await updateDoc(ref, { pinHash });
 
-      pinValue.textContent = newPin;
-      copyPinBtn.disabled = false;
-      hideBtn.disabled = false;
-      pinHint.textContent = "Give this PIN to the child now. It won’t be shown again.";
+      // show one-time pin in UI
+      if (pinValue) pinValue.textContent = newPin;
+      if (copyPinBtn) copyPinBtn.disabled = false;
+      if (hideBtn) hideBtn.disabled = false;
+      if (pinHint) pinHint.textContent = "Give this PIN to the child now. It won’t be shown again.";
 
       showToast("PIN reset ✅ (shown one-time)");
     } catch (e) {
@@ -164,16 +197,17 @@ async function loadOverview() {
   });
 
   copyPinBtn?.addEventListener("click", async () => {
-    if (pinValue.textContent === "—") return;
-    await copyText(pinValue.textContent);
+    const text = pinValue?.textContent || "";
+    if (!text || text === "—") return;
+    await copyText(text);
     showToast("PIN copied ✅");
   });
 
   hideBtn?.addEventListener("click", () => {
-    pinValue.textContent = "—";
-    copyPinBtn.disabled = true;
-    hideBtn.disabled = true;
-    pinHint.textContent = "PIN hidden.";
+    if (pinValue) pinValue.textContent = "—";
+    if (copyPinBtn) copyPinBtn.disabled = true;
+    if (hideBtn) hideBtn.disabled = true;
+    if (pinHint) pinHint.textContent = "PIN hidden.";
     showToast("PIN hidden");
   });
 

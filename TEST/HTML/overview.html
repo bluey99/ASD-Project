@@ -1,117 +1,107 @@
 <!-- ../HTML/overview.html -->
-<section class="ov">
-  <header class="ov-head">
+<div class="ov-wrap">
+
+  <!-- toast -->
+  <div id="toast" class="toast">Saved</div>
+
+  <div class="ov-head">
     <div>
       <h2 class="ov-title">Overview</h2>
       <p class="ov-sub">Patient profile & account actions</p>
     </div>
 
-    <div class="ov-actions">
-      <button class="btn-soft" id="btnRefresh" type="button" title="Refresh">↻ Refresh</button>
-    </div>
-  </header>
-
-  <!-- Top cards -->
-  <div class="ov-grid top">
-    <!-- Status 
-    <article class="card stat">
-      <div class="stat-label">Status</div>
-      <div class="stat-value">
-        <span class="pill" id="ovStatusPill">—</span>
-      </div>
-      <div class="hint" id="ovCreatedAt">Created: —</div>
-    </article>-->
-
-    <!-- Patient (only full name) -->
-    <article class="card stat">
-      <div class="stat-label">Patient</div>
-      <div class="stat-value" id="ovName">—</div>
-      <div class="hint">Profile</div>
-    </article>
-
-    <!-- ID card (custom title + label) -->
-    <article class="card stat">
-      <div class="stat-label"><strong>Patient ID</strong></div>
-      <div class="stat-value mono" id="ovChildID">—</div>
-      <div class="hint"><span class="muted">Parent ID:</span> <span class="mono" id="ovParentIDInline">—</span></div>
-    </article>
+    <button id="btnRefresh" class="btn-ghost" type="button">↻ Refresh</button>
   </div>
 
-  <!-- Main content -->
-  <div class="ov-grid main">
-    <!-- Patient details -->
-    <article class="card section">
-      <div class="section-head">
+  <!-- top cards row -->
+  <div class="ov-top">
+    <!-- patient card -->
+    <div class="ov-mini">
+      <div class="ov-mini-label">Patient</div>
+      <div class="ov-mini-value" id="ovName">—</div>
+      <div class="ov-mini-foot">Profile</div>
+    </div>
+
+    <!-- ids card -->
+    <div class="ov-mini">
+      <div class="ov-mini-label">Patient ID</div>
+      <div class="ov-mini-value" id="ovChildID">—</div>
+      <div class="ov-mini-foot">
+        Parent ID: <span id="ovParentIDInline">—</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- main grid -->
+  <div class="ov-grid">
+
+    <!-- patient details card -->
+    <section class="ov-card">
+      <div class="ov-card-head">
         <h3>Patient details</h3>
-        <span class="mini" id="ovAgeMini">Age: —</span>
+        <div class="ov-age-mini" id="ovAgeMini">Age: —</div>
       </div>
 
-      <div class="kv">
-        <div class="row">
-          <div class="k">Full name</div>
-          <div class="v" id="ovFullName">—</div>
-        </div>
-
-        <div class="row">
-          <div class="k">Patient ID</div>
-          <div class="v mono" id="ovChildID2">—</div>
-        </div>
-
-        <div class="row">
-          <div class="k">Parent ID</div>
-          <div class="v mono" id="ovParentID2">—</div>
-        </div>
-
-        <div class="row">
-          <div class="k">Age</div>
-          <div class="v" id="ovAge">—</div>
-        </div>
+      <div class="ov-row">
+        <div class="ov-key">Full name</div>
+        <div class="ov-val" id="ovFullName">—</div>
       </div>
 
-      <div class="divider"></div>
-
-      <div class="btn-row">
-        <button class="btn-soft" id="copyChildID" type="button">Copy patient ID</button>
-        <button class="btn-soft" id="copyParentID" type="button">Copy parent ID</button>
+      <div class="ov-row">
+        <div class="ov-key">Patient ID</div>
+        <div class="ov-val" id="ovChildID2">—</div>
       </div>
 
-      <p class="note">
-        Tip: Search on the home page by <strong>name</strong> or <strong>Patient ID</strong>.
-      </p>
-    </article>
+      <div class="ov-row">
+        <div class="ov-key">Parent ID</div>
+        <div class="ov-val" id="ovParentID2">—</div>
+      </div>
 
-    <!-- App account -->
-    <article class="card section">
-      <div class="section-head">
+      <div class="ov-row">
+        <div class="ov-key">Age</div>
+        <div class="ov-val" id="ovAge">—</div>
+      </div>
+
+      <div class="ov-actions">
+        <button id="copyChildID" class="btn-light" type="button">Copy patient ID</button>
+        <button id="copyParentID" class="btn-light" type="button">Copy parent ID</button>
+      </div>
+
+      <div class="ov-hint">
+        Tip: Search on the home page by <b>name</b> or <b>Patient ID</b>.
+      </div>
+    </section>
+
+    <!-- app account card -->
+    <section class="ov-card">
+      <div class="ov-card-head">
         <h3>App account</h3>
       </div>
 
-      <div class="kv">
-        <div class="row">
-          <div class="k">Username</div>
-          <div class="v mono" id="ovUsername">—</div>
-        </div>
+      <div class="ov-row">
+        <div class="ov-key">Username</div>
+        <div class="ov-val" id="ovUsername">—</div>
       </div>
 
-      <div class="divider"></div>
+      <button id="btnResetPin" class="btn-primary" type="button">Reset PIN</button>
 
-      <div class="security-box">
-        <button class="btn-primary" id="btnResetPin" type="button">Reset PIN</button>
+      <div class="pin-box">
+        <div class="pin-label">New PIN (one-time)</div>
+        <div class="pin-value" id="newPin">—</div>
 
-        <div class="pin-box">
-          <div class="pin-label">New PIN (one-time)</div>
-          <div class="pin-value mono" id="newPin">—</div>
+        <div class="pin-actions">
+          <button id="copyPin" class="btn-light" type="button" disabled>Copy PIN</button>
+          <button id="hidePin" class="btn-light" type="button" disabled>Hide</button>
+        </div>
 
-          <div class="btn-row">
-            <button class="btn-soft" id="copyPin" type="button" disabled>Copy PIN</button>
-            <button class="btn-ghost" id="hidePin" type="button" disabled>Hide</button>
-          </div>
-
-          <div class="hint" id="pinHint">Press “Reset PIN” to generate a new PIN.</div>
+        <div class="pin-hint" id="pinHint">
+          Press “Reset PIN” to generate a new PIN.
         </div>
       </div>
+    </section>
 
-      <div class="toast" id="toast" aria-live="polite"></div>
-    </article>
   </div>
-</section>
+
+  <!-- optional created at (only if you want it shown somewhere) -->
+  <div id="ovCreatedAt" class="ov-created">Created: —</div>
+</div>

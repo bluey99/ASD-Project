@@ -59,26 +59,7 @@ Important Notes
 
 Required for ES6 modules and Firebase integration
 
-Alternative Execution Methods
-Option 1: Python Local Server
 
-If Python is installed:
-
-python -m http.server 5500
-
-Then open:
-
-http://localhost:5500/index.html
-Option 2: Node.js HTTP Server
-
-If Node.js is installed:
-
-npm install -g http-server
-http-server
-
-Then open:
-
-http://localhost:8080/index.html
 Project Status
 
 🚧 Login and authentication are under development

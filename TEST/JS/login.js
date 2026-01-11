@@ -1,63 +1,81 @@
+// ../JS/login.js
+import { auth, db } from "./firebase.js";
+import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import {
+  collection,
+  query,
+  where,
+  getDocs
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
 document.addEventListener("DOMContentLoaded", () => {
-    const form = document.getElementById("loginForm");
-    const loginInputEl = document.getElementById("loginEmail");
-    const passwordField = document.getElementById("passwordField");
-    const togglePassword = document.getElementById("togglePassword");
-    const errorEl = document.getElementById("loginError");
+  const form = document.getElementById("loginForm");
+  const emailEl = document.getElementById("loginEmail");
+  const passwordEl = document.getElementById("passwordField");
+  const errorEl = document.getElementById("loginError");
 
-    if (!form) return; // safety
-
-    // --- Handle login submit ---
-    form.addEventListener("submit", (e) => {
-        e.preventDefault();
-
-        const loginInput = loginInputEl.value.trim().toLowerCase();
-        const password = passwordField.value;
-        errorEl.textContent = ""; // clear previous error
-
-        // Empty fields check
-        if (!loginInput || !password) {
-            errorEl.textContent = "Please fill in all fields.";
-            return;
-        }
-
-        // Load users list saved from signup.js
-        const users = JSON.parse(localStorage.getItem("moodiUsers")) || [];
-
-        // Find user by email OR name (case-insensitive)
-        const foundUser = users.find(u =>
-            u.email.toLowerCase() === loginInput ||
-            u.name.toLowerCase() === loginInput
-        );
-
-        if (!foundUser) {
-            errorEl.textContent = "User does not exist.";
-            return;
-        }
-
-        // Check password
-        if (password !== foundUser.password) {
-            errorEl.textContent = "Incorrect password.";
-            return;
-        }
-
-        // Save logged-in user for later use (optional)
-        localStorage.setItem("moodiLoggedUser", JSON.stringify(foundUser));
-
-        // Redirect to home/dashboard
-        window.location.href = "../HTML/index.html";
+  const togglePassword = document.getElementById("togglePassword");
+  if (togglePassword && passwordEl) {
+    togglePassword.addEventListener("click", () => {
+      const isPassword = passwordEl.type === "password";
+      passwordEl.type = isPassword ? "text" : "password";
+      const icon = togglePassword.querySelector("i");
+      icon.classList.toggle("fa-eye");
+      icon.classList.toggle("fa-eye-slash");
     });
+  }
 
-    // --- Toggle password visibility ---
-    if (togglePassword && passwordField) {
-        togglePassword.addEventListener("click", () => {
-            const isPassword = passwordField.getAttribute("type") === "password";
-            passwordField.setAttribute("type", isPassword ? "text" : "password");
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    errorEl.textContent = "";
 
-            // Switch FontAwesome icon
-            const icon = togglePassword.querySelector("i");
-            icon.classList.toggle("fa-eye");
-            icon.classList.toggle("fa-eye-slash");
-        });
+    const email = emailEl.value.trim().toLowerCase();
+    const password = passwordEl.value;
+
+    if (!email || !password) {
+      errorEl.textContent = "Please fill in all fields.";
+      return;
     }
+
+    try {
+      // 1) Auth login
+      const cred = await signInWithEmailAndPassword(auth, email, password);
+      const uid = cred.user.uid;
+
+      // 2) Find therapist profile by authUid
+      const q = query(collection(db, "therapists"), where("authUid", "==", uid));
+      const snap = await getDocs(q);
+
+      if (snap.empty) {
+        errorEl.textContent = "No therapist profile found for this account.";
+        return;
+      }
+
+      // 3) Save therapist profile locally (optional)
+      const therapistDoc = snap.docs[0];
+      const therapistData = therapistDoc.data();
+
+      localStorage.setItem("moodiTherapist", JSON.stringify({
+        docId: therapistDoc.id,     // th2
+        ...therapistData
+      }));
+
+      // 4) Redirect
+      window.location.href = "index.html";
+
+    } catch (err) {
+      console.error(err);
+
+      if (err.code === "auth/invalid-credential") {
+        errorEl.textContent = "Wrong email or password.";
+      } else if (err.code === "auth/user-not-found") {
+        errorEl.textContent = "User not found.";
+      } else if (err.code === "auth/wrong-password") {
+        errorEl.textContent = "Wrong password.";
+      } else {
+        errorEl.textContent = err.message;
+      }
+    }
+  });
 });
+

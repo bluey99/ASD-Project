@@ -1,137 +1,84 @@
+// ../JS/signup.js
+import { auth, db } from "./firebase.js";
+import { createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("signupForm");
+  if (!form) {
+    console.error("❌ signupForm not found");
+    return;
+  }
 
   const showError = (name, message) => {
     const el = document.querySelector(`.field-error[data-for="${name}"]`);
     if (el) el.textContent = message || "";
   };
 
-  form.addEventListener("submit", (e) => {
+  form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
     // Clear errors
     ["name", "email", "password", "confirmPassword", "experience", "terms"]
       .forEach(n => showError(n, ""));
 
-    let valid = true;
-
+    // Read values
     const name = form.name.value.trim();
     const email = form.email.value.trim().toLowerCase();
     const password = form.password.value;
     const confirmPassword = form.confirmPassword.value;
-    const field = form.field.value;
-    const experience = form.experience.value;
+
+    const fieldOfWork = form.field.value || ""; // select
+    const yearsOfExperience = Number(form.experience.value);
     const terms = form.terms.checked;
 
-    // VALIDATION
-    if (!name) {
-      showError("name", "Please enter your name.");
-      valid = false;
-    }
+    // Validation
+    let valid = true;
 
-    if (!email) {
-      showError("email", "Please enter your email.");
-      valid = false;
-    }
-
-    if (!password || password.length < 6) {
-      showError("password", "Password must be at least 6 characters.");
-      valid = false;
-    }
-
-    if (confirmPassword !== password) {
-      showError("confirmPassword", "Passwords do not match.");
-      valid = false;
-    }
-
-    if (experience === "" || Number(experience) < 0) {
-      showError("experience", "Experience must be a positive number.");
-      valid = false;
-    }
-
-    if (!terms) {
-      showError("terms", "You must agree to the terms.");
-      valid = false;
-    }
+    if (!name) { showError("name", "Please enter your name."); valid = false; }
+    if (!email) { showError("email", "Please enter your email."); valid = false; }
+    if (!password || password.length < 6) { showError("password", "Password must be at least 6 characters."); valid = false; }
+    if (confirmPassword !== password) { showError("confirmPassword", "Passwords do not match."); valid = false; }
+    if (Number.isNaN(yearsOfExperience) || yearsOfExperience < 0) { showError("experience", "Experience must be a positive number."); valid = false; }
+    if (!terms) { showError("terms", "You must agree to the terms."); valid = false; }
 
     if (!valid) return;
 
-    // LOAD EXISTING USERS
-    let users = JSON.parse(localStorage.getItem("moodiUsers")) || [];
+    try {
+      console.log("🚀 Creating auth user...");
+      const cred = await createUserWithEmailAndPassword(auth, email, password);
+      const uid = cred.user.uid;
+      console.log("✅ Auth created:", uid);
 
-    // CHECK IF Name ALREADY EXISTS
-    if (users.some(u => u.name === name)) {
-      showError("name", "**this name is already registered.");
-      return;
+      console.log("💾 Writing Firestore therapist profile...");
+      await setDoc(doc(db, "therapists", uid), {
+        uid,
+        name,
+        email,
+        fieldOfWork,
+        yearsOfExperience,
+        role: "therapist",
+        createdAt: serverTimestamp()
+      });
+      console.log("✅ Firestore write OK");
+
+      alert("Signed up successfully!");
+      window.location.href = "login.html";
+
+    } catch (err) {
+      console.error("❌ Signup error:", err);
+
+      if (err.code === "auth/email-already-in-use") {
+        showError("email", "This email is already registered.");
+      } else if (err.code === "auth/invalid-email") {
+        showError("email", "Invalid email address.");
+      } else if (err.code === "auth/weak-password") {
+        showError("password", "Weak password (min 6 chars).");
+      } else if (err.code === "permission-denied") {
+        alert("Firestore rules blocked the write. Add therapists rule in Firestore Rules.");
+      } else {
+        alert(err.message);
+      }
     }
-
-    // CHECK IF EMAIL ALREADY EXISTS
-    if (users.some(u => u.email === email)) {
-      showError("email", "*this email is already registered.");
-      return;
-    }
-
-    // CREATE TEMP DATE
-    const now = new Date();
-    const createdAt =
-      now.getFullYear() +
-      "-" + String(now.getMonth() + 1).padStart(2, "0") +
-      "-" + String(now.getDate()).padStart(2, "0") +
-      " " + String(now.getHours()).padStart(2, "0") +
-      ":" + String(now.getMinutes()).padStart(2, "0");
-
-    // CREATE NEW USER OBJECT
-    const newUser = {
-      name,
-      email,
-      password,
-      field,
-      experience,
-      createdAt
-    };
-
-    
-
-
-    // SAVE USER
-    users.push(newUser);
-    localStorage.setItem("moodiUsers", JSON.stringify(users));
-
-    // REDIRECT TO LOGIN
-    window.location.href = "login.html";
   });
-});
-
-
-const passwordField = document.getElementById('passwordField');
-const togglePassword = document.getElementById('togglePassword');
-
-togglePassword.addEventListener('click', function() {
-  // Toggle field type
-  const type = passwordField.getAttribute('type') === 'password'
-    ? 'text'
-    : 'password';
-    
-  passwordField.setAttribute('type', type);
-
-  // Toggle FontAwesome icon
-  this.querySelector('i').classList.toggle('fa-eye');
-  this.querySelector('i').classList.toggle('fa-eye-slash');
-});
-
-//confirm password "eye"
-
-const confirmPasswordField = document.getElementById('confirmPasswordField');
-const toggleConfirmPassword = document.getElementById('toggleConfirmPassword');
-
-toggleConfirmPassword.addEventListener('click', function() {
-  const type = confirmPasswordField.getAttribute('type') === 'password'
-    ? 'text'
-    : 'password';
-
-  confirmPasswordField.setAttribute('type', type);
-
-  // Switch eye icon
-  this.querySelector('i').classList.toggle('fa-eye');
-  this.querySelector('i').classList.toggle('fa-eye-slash');
 });

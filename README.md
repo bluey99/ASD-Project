@@ -62,9 +62,11 @@ Required for ES6 modules and Firebase integration
 
 Project Status
 
-🚧 Login and authentication are under development
+the children are not connected yet to the therapist 
 
-🔓 The project currently starts from index.html
+therapist test account :
+email : test@gmail.com
+pass : test1234
 
 Future versions will include secured routing and authentication logic
 

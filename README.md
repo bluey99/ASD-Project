@@ -64,9 +64,15 @@ Project Status
 
 the children are not connected yet to the therapist 
 
-therapist test account :
+therapist 1 test account :
 email : test@gmail.com
 pass : test1234
+
+child 1 test account:
+username : test3
+pin : 9710
+ID:121212121
+parentID:212121212
 
 Future versions will include secured routing and authentication logic
 

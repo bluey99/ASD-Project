@@ -1,0 +1,268 @@
+/* ../CSS/feedback.css */
+
+.fb-page{
+  padding: 18px;
+}
+
+/* Header */
+.fb-header{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.fb-title{
+  margin:0;
+  font-size: 20px;
+  font-weight: 800;
+  color:#0f172a;
+}
+
+.fb-subtitle{
+  margin:4px 0 0 0;
+  font-size: 13px;
+  color:#64748b;
+}
+
+.fb-actions{
+  display:flex;
+  gap:10px;
+  align-items:center;
+}
+
+/* Buttons (matches your style) */
+.btn-lite{
+  border: 1px solid rgba(15, 23, 42, .12);
+  background:#ffffff;
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 13px;
+  color:#0f172a;
+  cursor:pointer;
+  transition: .12s ease;
+}
+.btn-lite:hover{ background: rgba(2,132,199,.06); }
+
+.btn-primary{
+  border: 1px solid rgba(59,130,246,.35);
+  background: rgba(59,130,246,.12);
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-weight: 800;
+  font-size: 13px;
+  color:#1d4ed8;
+  cursor:pointer;
+  transition: .12s ease;
+  width: 100px;
+}
+.btn-primary:hover{ background: rgba(59,130,246,.18); }
+
+/* Filters */
+.fb-filters{
+  display:flex;
+  gap: 14px;
+  align-items:end;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.fb-field, .fb-sort, .fb-date{
+  display:flex;
+  flex-direction:column;
+  gap: 6px;
+}
+
+.fb-label{
+  font-size: 12px;
+  color:#475569;
+  font-weight:700;
+}
+
+.fb-input, .fb-select, .fb-textarea{
+  border: 1px solid rgba(15, 23, 42, .14);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 14px;
+  color:#0f172a;
+  background:#fff;
+  outline:none;
+}
+.fb-input:focus, .fb-select:focus, .fb-textarea:focus{
+  border-color: rgba(59,130,246,.55);
+  box-shadow: 0 0 0 3px rgba(59,130,246,.12);
+}
+
+/* Card */
+.fb-card{
+  background:#ffffff;
+  border: 1px solid rgba(15, 23, 42, .08);
+  border-radius: 14px;
+  overflow:hidden;
+}
+
+/* Table */
+.fb-table-wrap{
+  overflow:auto;
+}
+
+.fb-table{
+  width:100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.fb-table thead th{
+  text-transform: lowercase;
+  letter-spacing: .02em;
+  font-size: 12px;
+  color:#475569;
+  font-weight: 800;
+  text-align:left;
+  padding: 10px 14px;
+  background:#ffffff;
+  border-bottom: 1px solid rgba(15, 23, 42, .06);
+}
+
+.fb-table tbody td{
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(15, 23, 42, .06);
+  color:#0f172a;
+  vertical-align: top;
+}
+
+.fb-table tbody tr:hover{
+  background: rgba(15, 23, 42, .02);
+}
+
+.col-actions{ width: 120px; }
+.col-date{ width: 120px; }
+.col-time{ width: 90px; }
+.col-title{ width: 220px; }
+
+.fb-actions-cell a{
+  color:#2563eb;
+  text-decoration: underline;
+  font-weight:700;
+  cursor:pointer;
+}
+
+.fb-empty{
+  text-align:center;
+  color:#64748b;
+  padding: 26px 14px !important;
+}
+
+/* Form */
+.fb-form{
+  padding: 16px;
+  margin-top: 12px;
+}
+
+.fb-form-title{
+  margin: 0 0 12px 0;
+  font-size: 18px;
+  font-weight: 900;
+  color:#0f172a;
+}
+
+.fb-form-grid{
+  display:flex;
+  flex-direction:column;
+  gap: 12px;
+}
+
+.fb-row{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+@media (max-width: 720px){
+  .fb-row{ grid-template-columns: 1fr; }
+}
+
+.fb-buttons{
+  display:flex;
+  gap: 10px;
+  justify-content:flex-start;
+  margin-top: 4px;
+}
+
+.hidden{ display:none !important; }
+
+/* =========================================
+   FEEDBACKS: make it fill the whole white panel
+   (append at END of feedback.css)
+========================================= */
+
+#feedbackRoot {
+  width: 100%;
+  height: 100%;
+}
+
+/* Make the whole page fill the panel */
+.fb-page {
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Header + filters should NOT grow */
+.fb-header,
+.fb-filters {
+  flex: 0 0 auto;
+}
+
+/* Cards should grow to fill remaining space */
+.fb-card {
+  flex: 1 1 auto;
+  min-height: 0; /* IMPORTANT so inner scrolling works */
+  width: 90%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Table area takes the card height and scrolls */
+.fb-table-wrap {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+}
+
+/* Table full width */
+.fb-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+/* Make the form card also fill */
+#fbFormView.fb-card {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+/* Let form itself use the space nicely */
+.fb-form-grid {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Description grows (optional but makes it look full) */
+.fb-textarea {
+  flex: 1 1 auto;
+  min-height: 180px;
+  resize: vertical;
+}
+
+/* Keep buttons at bottom */
+.fb-buttons {
+  margin-top: auto;
+}

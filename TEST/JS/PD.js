@@ -99,36 +99,30 @@ document.addEventListener("DOMContentLoaded", () => {
     if (mod?.initTasks) await mod.initTasks();
   }
 
-  async function showFeedbacksView() {
-    clearSectionGlobals();
-    setActiveTab("feedbacks");
-    window.__FEEDBACK_MODE__ = "view";
+  // --- FEEDBACKS ---
+async function showFeedbacksView() {
+  clearSectionGlobals();
+  setActiveTab("feedback");
+  window.__FEEDBACK_MODE__ = "view";
 
-    panel.innerHTML = `
-      <div style="padding:18px">
-        <h2 style="margin:0 0 8px 0">Feedbacks</h2>
-        <div id="feedbackRoot"></div>
-      </div>
-    `;
+  await loadPartial("./feedback.html");
 
-    // feedback.js is a normal script (not module)
-    loadScript("../JS/feedback.js");
-  }
+  const mod = await importFresh("../JS/feedback.js");
+  if (mod?.initFeedbacks) await mod.initFeedbacks("view");
+}
 
-  async function showFeedbacksAdd() {
-    clearSectionGlobals();
-    setActiveTab("feedbacks");
-    window.__FEEDBACK_MODE__ = "add";
+async function showFeedbacksAdd() {
+  clearSectionGlobals();
+  setActiveTab("feedback");
+  window.__FEEDBACK_MODE__ = "add";
 
-    panel.innerHTML = `
-      <div style="padding:18px">
-        <h2 style="margin:0 0 8px 0">Add feedback</h2>
-        <div id="feedbackRoot"></div>
-      </div>
-    `;
+  await loadPartial("./feedback.html");
 
-    loadScript("../JS/feedback.js");
-  }
+  const mod = await importFresh("../JS/feedback.js");
+  if (mod?.initFeedbacks) await mod.initFeedbacks("add");
+}
+
+
 
   // ---------- tab click handling ----------
   tabs.forEach((tab) => {

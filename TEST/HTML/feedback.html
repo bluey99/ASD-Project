@@ -1,0 +1,81 @@
+<!-- ../HTML/feedbacks.html -->
+<section class="fb-page">
+  <div class="fb-header">
+    <div>
+      <h2 class="fb-title">Feedbacks</h2>
+      <p class="fb-subtitle" id="fbSubtitle">Loading…</p>
+    </div>
+
+    <div class="fb-actions">
+      <button class="btn-lite" id="fbRefreshBtn" type="button">Refresh</button>
+      <button class="btn-primary" id="fbAddBtn" type="button">Add feedback</button>
+    </div>
+  </div>
+
+  <div class="fb-filters">
+    <div class="fb-sort">
+      <label class="fb-label">Sort</label>
+      <select id="fbSortSelect" class="fb-select">
+        <option value="desc" selected>Newest → Oldest</option>
+        <option value="asc">Oldest → Newest</option>
+      </select>
+    </div>
+
+    <div class="fb-date">
+      <label class="fb-label">Filter by date</label>
+      <input id="fbDateFilter" class="fb-input" type="date" />
+    </div>
+  </div>
+
+  <!-- LIST -->
+  <div id="fbListView" class="fb-card">
+    <div class="fb-table-wrap">
+      <table class="fb-table">
+        <thead>
+          <tr>
+            <th class="col-date">date</th>
+            <th class="col-title">title</th>
+            <th class="col-time">time</th>
+            <th class="col-desc">description</th>
+            <th class="col-actions">actions</th>
+          </tr>
+        </thead>
+        <tbody id="fbTbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- FORM -->
+  <div id="fbFormView" class="fb-card fb-form hidden">
+    <h3 class="fb-form-title" id="fbFormTitle">Add feedback</h3>
+
+    <form id="fbForm" class="fb-form-grid">
+      <div class="fb-field">
+        <label class="fb-label">title</label>
+        <input id="fbTitle" class="fb-input" type="text" required />
+      </div>
+
+      <div class="fb-row">
+        <div class="fb-field">
+          <label class="fb-label">date</label>
+          <input id="fbDate" class="fb-input" type="date" required />
+        </div>
+
+        <div class="fb-field">
+          <label class="fb-label">time</label>
+          <input id="fbTime" class="fb-input" type="time" required />
+        </div>
+      </div>
+
+      <div class="fb-field">
+        <label class="fb-label">description</label>
+        <textarea id="fbDesc" class="fb-textarea" rows="6" required></textarea>
+      </div>
+
+      <div class="fb-buttons">
+        <button class="btn-primary" type="submit">Save</button>
+        <button class="btn-lite" id="fbCancelBtn" type="button">Cancel</button>
+      </div>
+    </form>
+  </div>
+</section>

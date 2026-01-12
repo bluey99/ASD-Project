@@ -1,0 +1,89 @@
+/* ===== Top Bar ===== */
+.topbar {
+  height: 64px;
+  background: rgba(255,255,255,0.92);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid #d9e4ef;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+/* Inner container */
+.topbar-inner {
+  max-width: 98%;
+  height: 100%;
+  margin: 0 auto;
+  padding: 0 20px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* ===== Brand ===== */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  text-decoration: none;
+  color: #0f172a;
+}
+
+/* Perfect square with centered "m" */
+.brand-icon {
+  width: 38px;
+  height: 38px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: linear-gradient(135deg, #0f172a, #2a6f97);
+  color: #ffffff;
+
+  font-weight: 800;
+  font-size: 18px;
+  line-height: 1;          /* IMPORTANT */
+  border-radius: 10px;
+
+  box-shadow: 0 8px 18px rgba(15,23,42,0.25);
+}
+
+/* Brand text */
+.brand-text {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.4px;
+  white-space: nowrap;
+}
+
+/* ===== Actions ===== */
+.topbar-actions a {
+  font-size: 14px;
+  font-weight: 600;
+  color: #2a6f97;
+  text-decoration: none;
+}
+
+.topbar-actions a:hover {
+  text-decoration: underline;
+}
+
+/* ===== Responsive adjustments ===== */
+@media (max-width: 600px) {
+  .brand-text {
+    font-size: 18px;
+  }
+
+  .brand-icon {
+    width: 34px;
+    height: 34px;
+    font-size: 16px;
+  }
+
+  .topbar-actions a {
+    font-size: 13px;
+  }
+}

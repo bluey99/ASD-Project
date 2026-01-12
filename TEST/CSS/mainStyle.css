@@ -94,3 +94,12 @@ body{
 .notif-box li{ padding:8px 14px; font-size:14px; color:var(--text); border-bottom:1px solid #f1f5f9; line-height:1.4; }
 .notif-box li:last-child{ border-bottom:none; }
 .notif-box li:hover{ background:#f8fafc; }
+
+html, body {
+  height: 100%;
+}
+
+body {
+  min-height: 100vh;
+}
+

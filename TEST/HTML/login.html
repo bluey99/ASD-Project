@@ -5,20 +5,28 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Login | moodi</title>
   <link rel="stylesheet" href="../CSS/login.css" />
+  <link rel="stylesheet" href="../CSS/topbar.css">
+    <link rel="stylesheet" href="../CSS/mainStyle.css">
+
+
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 
 <body>
   <header class="topbar">
-    <div class="topbar-inner container">
-      <a href="index.html" class="brand" aria-label="Moodi home">
-        <span>moodi</span>
-      </a>
-      <div class="actions">
-        <a href="signup.html" class="login">sign up</a>
-      </div>
-    </div>
-  </header>
+  <div class="topbar-inner">
+    <a href="index.html" class="brand">
+      <span class="brand-icon">m</span>
+      <span class="brand-text">moodi</span>
+    </a>
+
+    <nav class="topbar-actions">
+      <a href="signup.html">Sign up</a>
+    </nav>
+  </div>
+</header>
+
+
 
   <main class="main-area">
     <h1>log in to moodi</h1>
@@ -42,9 +50,10 @@
               autocomplete="current-password"
               required
             >
-            <span id="togglePassword" class="toggle-pass">
-              <i class="fa-solid fa-eye"></i>
-            </span>
+            <button type="button" id="togglePassword" class="toggle-pass">
+  <i class="fa-solid fa-eye"></i>
+</button>
+
           </div>
         </div>
 

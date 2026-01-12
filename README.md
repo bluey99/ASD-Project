@@ -68,6 +68,10 @@ therapist 1 test account :
 email : test@gmail.com
 pass : test1234
 
+therapist 2 test account :
+email : Reemhawa2002@gmail.com
+pass : reemhawa1234
+
 child 1 test account:
 username : test3
 pin : 9710

@@ -1,6 +1,6 @@
 // ../JS/PD.js
 // Loads overview/tasks/reports/feedback into #panel reliably
-// Works with your dropdown menu buttons + allows returning to Overview
+// Uses partial HTML + fresh module imports (prevents caching issues)
 
 document.addEventListener("DOMContentLoaded", () => {
   const panel = document.getElementById("panel");
@@ -10,8 +10,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const tabs = Array.from(document.querySelectorAll(".tab"));
 
   function setActiveTab(tabName) {
-    tabs.forEach(t => t.classList.remove("active"));
-    const target = tabs.find(t => t.dataset.tab === tabName);
+    tabs.forEach((t) => t.classList.remove("active"));
+    const target = tabs.find((t) => t.dataset.tab === tabName);
     if (target) target.classList.add("active");
   }
 
@@ -49,18 +49,21 @@ document.addEventListener("DOMContentLoaded", () => {
     clearSectionGlobals();
     setActiveTab("overview");
     await loadPartial("../HTML/overview.html");
-    await importFresh("../JS/overview.js");
+
+    // overview.js should export initOverview() OR just run on import
+    const mod = await importFresh("../JS/overview.js");
+    if (mod?.initOverview) await mod.initOverview();
   }
 
   async function showReports() {
     clearSectionGlobals();
     setActiveTab("reports");
-    panel.innerHTML = `
-      <div style="padding:18px">
-        <h2 style="margin:0 0 8px 0">Reports</h2>
-        <p style="margin:0;color:#64748b">Reports will appear here!</p>
-      </div>
-    `;
+
+    await loadPartial("../HTML/reports.html");
+
+    // reports.js should export initReports()
+    const mod = await importFresh("../JS/reports.js");
+    if (mod?.initReports) await mod.initReports();
   }
 
   async function showTasksView() {
@@ -75,7 +78,9 @@ document.addEventListener("DOMContentLoaded", () => {
       </div>
     `;
 
-    await importFresh("../JS/tasks.js");
+    // tasks.js is a module and reads window.__TASKS_MODE__
+    const mod = await importFresh("../JS/tasks.js");
+    if (mod?.initTasks) await mod.initTasks();
   }
 
   async function showTasksAdd() {
@@ -90,7 +95,8 @@ document.addEventListener("DOMContentLoaded", () => {
       </div>
     `;
 
-    await importFresh("../JS/tasks.js");
+    const mod = await importFresh("../JS/tasks.js");
+    if (mod?.initTasks) await mod.initTasks();
   }
 
   async function showFeedbacksView() {
@@ -105,7 +111,7 @@ document.addEventListener("DOMContentLoaded", () => {
       </div>
     `;
 
-    // feedback.js in your project is a normal script (not module)
+    // feedback.js is a normal script (not module)
     loadScript("../JS/feedback.js");
   }
 
@@ -125,14 +131,14 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // ---------- tab click handling ----------
-  tabs.forEach(tab => {
+  tabs.forEach((tab) => {
     tab.addEventListener("click", async () => {
       const tabName = tab.dataset.tab;
 
       try {
         if (tabName === "overview") await showOverview();
         else if (tabName === "reports") await showReports();
-        else if (tabName === "tasks") await showTasksView();        // clicking "tasks ▾" defaults to view
+        else if (tabName === "tasks") await showTasksView(); // clicking "tasks ▾" defaults to view
         else if (tabName === "feedbacks") await showFeedbacksView(); // clicking "feedbacks ▾" defaults to view
       } catch (e) {
         console.error(e);
@@ -142,7 +148,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // ---------- dropdown actions ----------
-  document.querySelectorAll(".dropdown-menu button").forEach(btn => {
+  document.querySelectorAll(".dropdown-menu button").forEach((btn) => {
     btn.addEventListener("click", async () => {
       const action = btn.dataset.action;
 

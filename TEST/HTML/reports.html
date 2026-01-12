@@ -1,0 +1,69 @@
+<!-- ../HTML/reports.html -->
+<section class="reports-page" aria-label="Reports">
+  <div class="reports-header">
+    <div>
+      <h2 class="reports-title" id="reportsTitle">Reports</h2>
+      <p class="reports-subtitle" id="reportsSubtitle">Reports will appear here!</p>
+    </div>
+
+    <div class="reports-actions">
+      <button class="btn-lite" id="reportsRefreshBtn" type="button">Refresh</button>
+    </div>
+  </div>
+
+  <div class="reports-grid">
+    <!-- LEFT: table -->
+    <div class="reports-card">
+      <div class="reports-card-head">
+        <div class="reports-pill" id="reportsPatientPill">Patient</div>
+
+        <div class="reports-filter">
+          <label class="switch">
+            <input type="checkbox" id="onlyParentToggle" />
+            <span class="slider"></span>
+          </label>
+          <span class="filter-text">Only parent reports</span>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table class="reports-table" aria-label="Reports list">
+          <thead>
+            <tr>
+              <th class="col-emoji"></th>
+              <th class="col-date">date</th>
+              <th class="col-by">assigned by</th>
+              <th class="col-open"></th>
+            </tr>
+          </thead>
+          <tbody id="reportsTbody">
+            <tr>
+              <td colspan="4" class="reports-empty">Loading reports…</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- RIGHT: details -->
+    <div class="reports-card reports-details">
+      <div id="reportDetailsEmpty" class="details-empty">
+        <div class="details-emoji">📝</div>
+        <div class="details-title">Select a report</div>
+        <div class="details-sub">Click the arrow to view the report details.</div>
+      </div>
+
+      <div id="reportDetailsBody" class="details-body hidden">
+        <div class="details-head">
+          <div class="details-badge" id="detailsBadge">🙂</div>
+          <div>
+            <div class="details-h" id="detailsHeading">Report details</div>
+            <div class="details-meta" id="detailsMeta">—</div>
+          </div>
+        </div>
+
+        <div id="detailsGrid" class="details-grid"></div>
+      </div>
+    </div>
+  </div>
+</section>

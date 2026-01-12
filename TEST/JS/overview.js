@@ -11,7 +11,6 @@ import {
   limit
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-/* ---------- helpers ---------- */
 const $ = (id) => document.getElementById(id);
 
 function showToast(msg) {
@@ -29,26 +28,6 @@ function formatCreatedAt(ts) {
   return d.toLocaleString();
 }
 
-function setPill(status) {
-  const pill = $("ovStatusPill");
-  if (!pill) return;
-
-  const s = (status || "active").toLowerCase();
-  pill.classList.remove("ok", "warn", "off");
-
-  if (s === "active") {
-    pill.classList.add("ok");
-    pill.textContent = "Active";
-  } else if (s === "paused") {
-    pill.classList.add("warn");
-    pill.textContent = "Paused";
-  } else {
-    pill.classList.add("off");
-    pill.textContent = s.charAt(0).toUpperCase() + s.slice(1);
-  }
-}
-
-/* ---------- AGE: years.months ---------- */
 function calculateAgeYM(birthdateStr) {
   if (!birthdateStr || !/^\d{4}-\d{2}-\d{2}$/.test(birthdateStr)) return "—";
 
@@ -59,18 +38,17 @@ function calculateAgeYM(birthdateStr) {
   let months = today.getMonth() - birth.getMonth();
 
   if (today.getDate() < birth.getDate()) months--;
-
   if (months < 0) {
     years--;
     months += 12;
   }
-
   return `${years}.${months}`;
 }
 
-function randomPin6() {
-  return String(Math.floor(100000 + Math.random() * 900000));
+function randomPin4() {
+  return String(Math.floor(1000 + Math.random() * 9000));
 }
+
 
 async function sha256Hex(text) {
   const enc = new TextEncoder().encode(text);
@@ -83,32 +61,30 @@ async function copyText(text) {
   await navigator.clipboard.writeText(text);
 }
 
-/* ---------- IMPORTANT FIX ----------
-   Allow URL param childId to be:
-   1) Firestore doc id (letters/numbers)
-   2) 9-digit patient ID (field: childID)
------------------------------------- */
+/**
+ * ✅ FIX: ALWAYS use collection "children"
+ * param childId can be:
+ * 1) Firestore doc id
+ * 2) 9-digit childID field
+ */
 async function getChildDocRefFromUrl() {
   const param = new URLSearchParams(window.location.search).get("childId");
   if (!param) return null;
 
-  // if param is 9 digits => search by field childID
   if (/^\d{9}$/.test(param)) {
     const qRef = query(
-      collection(db, "childrenn"),
+      collection(db, "children"),
       where("childID", "==", param),
       limit(1)
     );
     const snap = await getDocs(qRef);
     if (snap.empty) return null;
-    return snap.docs[0].ref; // DocumentReference
+    return snap.docs[0].ref;
   }
 
-  // otherwise treat as firestore doc id
-  return doc(db, "childrenn", param);
+  return doc(db, "children", param);
 }
 
-/* ---------- MAIN ---------- */
 async function loadOverview() {
   const ref = await getChildDocRefFromUrl();
   if (!ref) {
@@ -124,22 +100,13 @@ async function loadOverview() {
 
   const d = snap.data();
 
-  /* --- top cards --- */
-  setPill(d.status || "active");
-
   const createdEl = $("ovCreatedAt");
   if (createdEl) createdEl.textContent = `Created: ${formatCreatedAt(d.createdAt)}`;
 
-  const nameEl = $("ovName");
-  if (nameEl) nameEl.textContent = d.name || "—";
+  $("ovName") && ($("ovName").textContent = d.name || "—");
+  $("ovChildID") && ($("ovChildID").textContent = d.childID || "—");
+  $("ovParentIDInline") && ($("ovParentIDInline").textContent = d.parentID || "—");
 
-  const childIdEl = $("ovChildID");
-  if (childIdEl) childIdEl.textContent = d.childID || "—";
-
-  const parentInlineEl = $("ovParentIDInline");
-  if (parentInlineEl) parentInlineEl.textContent = d.parentID || "—";
-
-  /* --- patient details --- */
   $("ovFullName") && ($("ovFullName").textContent = d.name || "—");
   $("ovChildID2") && ($("ovChildID2").textContent = d.childID || "—");
   $("ovParentID2") && ($("ovParentID2").textContent = d.parentID || "—");
@@ -148,10 +115,8 @@ async function loadOverview() {
   $("ovAge") && ($("ovAge").textContent = ageYM);
   $("ovAgeMini") && ($("ovAgeMini").textContent = `Age: ${ageYM}`);
 
-  /* --- app account --- */
   $("ovUsername") && ($("ovUsername").textContent = d.username || "—");
 
-  /* --- copy buttons --- */
   $("copyChildID")?.addEventListener("click", async () => {
     await copyText(d.childID || "");
     showToast("Patient ID copied ✅");
@@ -162,7 +127,6 @@ async function loadOverview() {
     showToast("Parent ID copied ✅");
   });
 
-  /* --- reset PIN --- */
   const btnReset = $("btnResetPin");
   const pinValue = $("newPin");
   const copyPinBtn = $("copyPin");
@@ -174,13 +138,11 @@ async function loadOverview() {
       btnReset.disabled = true;
       btnReset.textContent = "Resetting...";
 
-      const newPin = randomPin6();
+      const newPin = randomPin4();
       const pinHash = await sha256Hex(newPin);
 
-      // update Firestore with new hash (overwrite old)
       await updateDoc(ref, { pinHash });
 
-      // show one-time pin in UI
       if (pinValue) pinValue.textContent = newPin;
       if (copyPinBtn) copyPinBtn.disabled = false;
       if (hideBtn) hideBtn.disabled = false;
@@ -189,7 +151,7 @@ async function loadOverview() {
       showToast("PIN reset ✅ (shown one-time)");
     } catch (e) {
       console.error(e);
-      showToast("Reset failed (permissions?).");
+      showToast("Reset failed.");
     } finally {
       btnReset.disabled = false;
       btnReset.textContent = "Reset PIN";

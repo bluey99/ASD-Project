@@ -12,7 +12,7 @@ import {
   where,
   limit,
   runTransaction,
-  serverTimestamp
+  serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 /* ---------------- UI ---------------- */
@@ -32,7 +32,7 @@ const genPinEl = document.getElementById("genPin");
 const copyUsernameBtn = document.getElementById("copyUsername");
 const copyPinBtn = document.getElementById("copyPin");
 
-/* confirm modal (optional but supported by this file) */
+/* confirm modal */
 const confirmModal = document.getElementById("confirmModal");
 const cancelModal = document.getElementById("cancelModal");
 const confirmCreateBtn = document.getElementById("confirmCreate");
@@ -61,7 +61,6 @@ function isNineDigits(v) {
 
 function isValidBirthdate(dateStr) {
   if (!dateStr) return false;
-  // input type="date" => YYYY-MM-DD
   if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return false;
   const d = new Date(dateStr + "T00:00:00");
   const now = new Date();
@@ -69,14 +68,14 @@ function isValidBirthdate(dateStr) {
 }
 
 function cleanBaseFromName(fullName) {
-  // username base from first word
   const first = (fullName || "").trim().split(/\s+/)[0] || "";
   return first.toLowerCase().replace(/[^a-z0-9]/g, "");
 }
 
-function randomPin6() {
-  return String(Math.floor(100000 + Math.random() * 900000));
+function randomPin4() {
+  return String(Math.floor(1000 + Math.random() * 9000));
 }
+
 
 async function sha256Hex(text) {
   const enc = new TextEncoder().encode(text);
@@ -90,13 +89,12 @@ async function copyToClipboard(text) {
 }
 
 /**
- * Optional but recommended: prevent duplicate childID
- * (so search by ID is reliable)
+ * Prevent duplicate childID
+ * ✅ FIX: collection is "children"
  */
 async function childIdExists(childID) {
-  // IMPORTANT: if your collection is named "childrenn", change below to "childrenn"
   const qRef = query(
-    collection(db, "childrenn"),
+    collection(db, "children"),
     where("childID", "==", childID),
     limit(1)
   );
@@ -105,11 +103,7 @@ async function childIdExists(childID) {
 }
 
 /**
- * Generate UNIQUE username using a counter doc:
- * Collection: usernameCounters
- * DocID: base (e.g. "leo")
- * Field: lastNumber
- * Output: leo1, leo2, ...
+ * Generate UNIQUE username using usernameCounters/base
  */
 async function generateUniqueUsername(fullName) {
   const base = cleanBaseFromName(fullName);
@@ -121,9 +115,7 @@ async function generateUniqueUsername(fullName) {
     const snap = await tx.get(counterRef);
     let last = 0;
 
-    if (snap.exists()) {
-      last = Number(snap.data().lastNumber || 0);
-    }
+    if (snap.exists()) last = Number(snap.data().lastNumber || 0);
 
     const next = last + 1;
     tx.set(counterRef, { lastNumber: next }, { merge: true });
@@ -150,46 +142,30 @@ btnGenerate?.addEventListener("click", async () => {
     const parentID = parentIDEl?.value.trim() || "";
     const birthdate = birthdateEl?.value || "";
 
-    // Required fields
     if (!fullName || !childID || !parentID || !birthdate) {
       setStatus("Please fill: Full name, Child ID, Parent ID, Birthdate.", true);
       return;
     }
 
-    // 9 digits validation
-    if (!isNineDigits(childID)) {
-      setStatus("Child ID must be exactly 9 digits.", true);
-      return;
-    }
-    if (!isNineDigits(parentID)) {
-      setStatus("Parent ID must be exactly 9 digits.", true);
-      return;
-    }
+    if (!isNineDigits(childID)) return setStatus("Child ID must be exactly 9 digits.", true);
+    if (!isNineDigits(parentID)) return setStatus("Parent ID must be exactly 9 digits.", true);
+    if (!isValidBirthdate(birthdate)) return setStatus("Birthdate is not valid.", true);
 
-    // birthdate validation
-    if (!isValidBirthdate(birthdate)) {
-      setStatus("Birthdate is not valid (YYYY-MM-DD).", true);
-      return;
-    }
-
-    // uniqueness check (recommended)
     setStatus("Checking Child ID uniqueness...");
     if (await childIdExists(childID)) {
       setStatus("This Child ID already exists. Please verify it.", true);
       return;
     }
 
-    // generate username + pin
     setStatus("Generating username and PIN...");
     generatedUsername = await generateUniqueUsername(fullName);
-    generatedPin = randomPin6();
+    generatedPin = randomPin4();
 
-    // show on UI
     if (genUsernameEl) genUsernameEl.textContent = generatedUsername;
     if (genPinEl) genPinEl.textContent = generatedPin;
 
     enableAfterGenerate(true);
-    setStatus("Generated  Click “Create patient”.");
+    setStatus("Generated ✅ Click “Create patient”.");
   } catch (err) {
     console.error(err);
     setStatus(err?.message || "Failed to generate credentials.", true);
@@ -208,10 +184,6 @@ copyPinBtn?.addEventListener("click", async () => {
   setStatus("PIN copied.");
 });
 
-/**
- * If you have a confirmation modal in addPatient.html, we use it.
- * If not, we create directly.
- */
 form?.addEventListener("submit", async (e) => {
   e.preventDefault();
 
@@ -225,25 +197,15 @@ form?.addEventListener("submit", async (e) => {
   const parentID = parentIDEl?.value.trim() || "";
   const birthdate = birthdateEl?.value || "";
 
-  // Re-check validation
   if (!fullName || !childID || !parentID || !birthdate) {
     setStatus("Missing required fields.", true);
     return;
   }
-  if (!isNineDigits(childID)) {
-    setStatus("Child ID must be exactly 9 digits.", true);
-    return;
-  }
-  if (!isNineDigits(parentID)) {
-    setStatus("Parent ID must be exactly 9 digits.", true);
-    return;
-  }
-  if (!isValidBirthdate(birthdate)) {
-    setStatus("Birthdate is not valid (YYYY-MM-DD).", true);
-    return;
-  }
 
-  // If modal exists, open it. Otherwise, create directly.
+  if (!isNineDigits(childID)) return setStatus("Child ID must be exactly 9 digits.", true);
+  if (!isNineDigits(parentID)) return setStatus("Parent ID must be exactly 9 digits.", true);
+  if (!isValidBirthdate(birthdate)) return setStatus("Birthdate is not valid.", true);
+
   if (confirmModal && confirmCreateBtn) {
     cName.textContent = fullName;
     cChildID.textContent = childID;
@@ -251,20 +213,14 @@ form?.addEventListener("submit", async (e) => {
     cBirthdate.textContent = birthdate;
     cUsername.textContent = generatedUsername;
     cPin.textContent = generatedPin;
-
     confirmModal.showModal();
   } else {
     await createPatient();
   }
 });
 
-cancelModal?.addEventListener("click", () => {
-  confirmModal?.close();
-});
-
-confirmCreateBtn?.addEventListener("click", async () => {
-  await createPatient();
-});
+cancelModal?.addEventListener("click", () => confirmModal?.close());
+confirmCreateBtn?.addEventListener("click", async () => await createPatient());
 
 /* ---------------- Create patient in Firestore ---------------- */
 async function createPatient() {
@@ -278,7 +234,7 @@ async function createPatient() {
 
     if (!isNineDigits(childID)) return setStatus("Child ID must be exactly 9 digits.", true);
     if (!isNineDigits(parentID)) return setStatus("Parent ID must be exactly 9 digits.", true);
-    if (!isValidBirthdate(birthdate)) return setStatus("Birthdate must be YYYY-MM-DD.", true);
+    if (!isValidBirthdate(birthdate)) return setStatus("Birthdate must be valid.", true);
 
     if (await childIdExists(childID)) {
       setStatus("This Child ID already exists. Please verify it.", true);
@@ -288,7 +244,8 @@ async function createPatient() {
 
     const pinHash = await sha256Hex(generatedPin);
 
-    const newRef = doc(collection(db, "childrenn"));
+    // ✅ FIX: create inside "children"
+    const newRef = doc(collection(db, "children"));
 
     await setDoc(newRef, {
       name: fullName,
@@ -297,12 +254,13 @@ async function createPatient() {
       birthdate,
       username: generatedUsername,
       pinHash,
-      createdAt: serverTimestamp()
+      role: "child",
+      therapistID: "999999999", // keep if you use it
+      createdAt: serverTimestamp(),
     });
 
     confirmModal?.close();
-    setStatus("Patient created ");
-
+    setStatus("Patient created ✅");
     window.location.href = "index.html";
   } catch (err) {
     console.error(err);
@@ -310,4 +268,3 @@ async function createPatient() {
     setStatus(err?.message || "Failed to create patient.", true);
   }
 }
-

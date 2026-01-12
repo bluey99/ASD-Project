@@ -1,13 +1,12 @@
+// ../JS/index.js
 import { db } from "./firebase.js";
 import {
   collection,
-  getDocs,
-  query,
-  where
+  getDocs
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // ====== Global list from Firestore ======
-let patients = []; // [{id, name, code, pin, parentId}]
+let patients = [];
 
 // create a short auto code from name + index (fallback if Firestore has no code)
 const makeCode = (name, idx) =>
@@ -27,7 +26,6 @@ const addPersonSVG = `
   </svg>
 `;
 
-// card builders
 function buildAddCard() {
   const article = document.createElement("article");
   article.className = "card add";
@@ -38,9 +36,8 @@ function buildAddCard() {
   article.setAttribute("role", "button");
   article.setAttribute("tabindex", "0");
 
-  // OPTIONAL: link to signup page for adding new child (change if you have another page)
   article.addEventListener("click", () => {
-window.location.href = "addPatient.html";
+    window.location.href = "addPatient.html";
   });
 
   article.addEventListener("keypress", (e) => {
@@ -63,6 +60,9 @@ function buildPatientCard(name, code, childDocId) {
   `;
 
   article.addEventListener("click", () => {
+    // ✅ store selected child doc id for any page that needs fallback
+    localStorage.setItem("selectedChildId", childDocId);
+
     window.location.href = `PD.html?childId=${encodeURIComponent(childDocId)}`;
   });
 
@@ -73,7 +73,6 @@ function buildPatientCard(name, code, childDocId) {
   return article;
 }
 
-// render logic
 function renderCards(list) {
   const rail = document.getElementById("rail");
   if (!rail) return;
@@ -91,18 +90,17 @@ function renderCards(list) {
   rail.appendChild(frag);
 }
 
-// search
 function setupSearch() {
   const input = document.getElementById("search");
   if (!input) return;
 
   const doFilter = () => {
     const q = input.value.trim().toLowerCase();
-
     const filtered = q
       ? patients.filter((p) =>
           (p.name || "").toLowerCase().includes(q) ||
-          (p.code || "").toLowerCase().includes(q)
+          (p.code || "").toLowerCase().includes(q) ||
+          (p.childID || "").toLowerCase().includes(q)
         )
       : patients;
 
@@ -112,7 +110,6 @@ function setupSearch() {
   input.addEventListener("input", doFilter);
 }
 
-// carousel arrows
 function setupArrows() {
   const rail = document.getElementById("rail");
   const prev = document.getElementById("prev");
@@ -134,7 +131,6 @@ function setupArrows() {
   });
 }
 
-// Notification dropdown toggle
 function setupNotifications() {
   const bell = document.querySelector(".bell");
   const notifBox = document.getElementById("notifBox");
@@ -146,40 +142,33 @@ function setupNotifications() {
     });
 
     document.addEventListener("click", (e) => {
-      if (!bell.contains(e.target)) {
-        notifBox.classList.remove("show");
-      }
+      if (!bell.contains(e.target)) notifBox.classList.remove("show");
     });
   }
 }
 
-// ====== Firestore load ======
 async function loadChildrenFromFirestore() {
   try {
-    // You already store role: "child" in documents, so we filter by that
-    const q = collection(db, "childrenn");   // get ALL children docs
-    const snap = await getDocs(q);
+    // ✅ FIX: collection is "children"
+    const snap = await getDocs(collection(db, "children"));
 
-    patients = snap.docs.map((doc) => {
-      const d = doc.data();
+    patients = snap.docs.map((docSnap) => {
+      const d = docSnap.data();
       return {
-        id: doc.id,
+        id: docSnap.id,              // firestore doc id
         name: d.name || "Unnamed",
+        childID: d.childID || "",    // 9 digit
         parentID: d.parentID || "",
-        pin: d.pinHash || "",
-        code: d.childId || "" // optional if you store it later
+        code: d.childID || ""        // show childID as code on card (nice)
       };
     });
 
     renderCards(patients);
     setupSearch();
     setupArrows();
-
-    console.log("Loaded children ", patients);
+    console.log("Loaded children ✅", patients);
   } catch (err) {
-    console.error("Failed to load children ", err);
-
-    // fallback: show empty list but still show add card
+    console.error("Failed to load children ❌", err);
     patients = [];
     renderCards(patients);
     setupSearch();
@@ -187,7 +176,6 @@ async function loadChildrenFromFirestore() {
   }
 }
 
-// Init
 document.addEventListener("DOMContentLoaded", () => {
   setupNotifications();
   loadChildrenFromFirestore();

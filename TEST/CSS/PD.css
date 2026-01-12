@@ -1,60 +1,147 @@
-/* ===== Patient band ===== */
-.pdash-hero{
-  background:var(--band);
-  border-bottom:1px solid var(--line);
-}
-.pdash-hero .container{ padding: 8px 16px; }
-.pdash-hero h1{
-  margin:0; text-align:center;
-  font-size:36px; font-weight:700; padding:18px 0;
+/* PD.css — upgraded layout + bigger panel */
+
+.pd-page{
+  padding-top: 18px;
 }
 
-/* ===== Main fills remaining viewport ===== */
-.pdash-main{
-  flex:1 1 auto;                
-  display:flex;
-  flex-direction:column;
+/* Make everything wider + centered (less empty space) */
+.pd-shell{
+  width: 96%;
+  max-width: 1500px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
 }
 
-
-.pdash-inner{
-  display:flex;
-  flex-direction:column;
-  gap:12px;
-  padding: 12px 0 20px;
-  flex: 1 1 auto;
-  min-height: 0;
-  width: 100%;
-}
-
-/* ===== Tabs ===== */
+/* Tabs centered like a real app header row */
 .tabs{
-  display:flex; gap:12px; align-items:center;
+  display:flex;
+  justify-content:center;
+  gap: 10px;
+  align-items:center;
+  flex-wrap: wrap;
+  margin-top: 10px;
+  margin-bottom: 10px;
 }
+
+/* Pills */
 .tab{
   appearance:none;
-  border:1px solid var(--line);
-  background:#fff; color:var(--text);
-  padding:8px 14px; border-radius:10px;
-  font:inherit; cursor:pointer;
-  transition: background .15s ease, box-shadow .15s ease, border-color .15s ease;
+  border: 1px solid rgba(215,228,242,.95);
+  background: rgba(255,255,255,.88);
+  color: var(--ink);
+  padding: 16px 28px;
+  border-radius: 999px;
+  font: inherit;
+  font-weight: 1000;
+  cursor:pointer;
+  transition: transform .12s ease, box-shadow .2s ease, background .2s ease;
 }
-.tab:hover, .tab:focus-visible{
-  background:var(--baby); outline:none;
-  box-shadow:0 0 0 3px rgba(14,165,233,.15);
-}
-.tab.active{
-  background:var(--baby);
-  border-color:#cfe6f8; font-weight:700;
+.tab:hover,
+.tab:focus-visible{
+  outline:none;
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(15,23,42,.08);
+  background: rgba(248,250,252,.96);
 }
 
-/* ===== Content panel stretches ===== */
+.tab.active{
+  background: linear-gradient(135deg, rgba(46,196,182,.16), rgba(42,111,151,.14));
+  border-color: rgba(46,196,182,.55);
+  box-shadow: 0 10px 26px rgba(15,23,42,.06);
+}
+
+/* ✅ Bigger “white box” (panel) + more premium look */
 .panel{
-  flex:1 1 auto;        /* <— THIS makes the white panel fill the rest */
-  min-height:0;         /* allow flex to control height */
-  background:#fff;
-  border:1px solid var(--line);
-  border-radius:12px;
-  padding:18px;
+  width: 100%;
+  min-height: 72vh;
+  background: rgba(255,255,255,.94);
+  border: 1px solid rgba(215,228,242,.95);
+  border-radius: 22px;
+  box-shadow: 0 18px 60px rgba(15,23,42,.12);
+  padding: 26px;
   overflow:auto;
+
+  /* subtle inner glow */
+  position: relative;
+}
+.panel::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius: 22px;
+  pointer-events:none;
+  background: radial-gradient(700px 260px at 20% 0%, rgba(46,196,182,.10), transparent 60%),
+              radial-gradient(700px 260px at 80% 0%, rgba(42,111,151,.10), transparent 60%);
+}
+
+/* keep content above glow */
+.panel > *{
+  position: relative;
+  z-index: 1;
+}
+
+/* Responsive */
+@media (max-width: 900px){
+  .pd-shell{ width: 95%; }
+  .panel{ padding: 16px; min-height: 68vh; }
+}
+/* =========================
+   Creative “app dashboard” polish
+   ========================= */
+
+/* Make the big panel feel premium */
+.panel{
+  border-radius: 24px;
+  padding: 28px;
+  background: rgba(255,255,255,.92);
+  border: 1px solid rgba(215,228,242,.95);
+  box-shadow: 0 22px 70px rgba(15,23,42,.14);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Soft “aurora” glow inside panel */
+.panel::before{
+  content:"";
+  position:absolute;
+  inset:-2px;
+  pointer-events:none;
+  background:
+    radial-gradient(700px 260px at 20% 0%, rgba(46,196,182,.14), transparent 60%),
+    radial-gradient(700px 260px at 80% 0%, rgba(42,111,151,.12), transparent 60%);
+  opacity: .9;
+}
+
+/* Light diagonal sheen */
+.panel::after{
+  content:"";
+  position:absolute;
+  top:-30%;
+  right:-30%;
+  width: 520px;
+  height: 520px;
+  background: linear-gradient(135deg, rgba(42,111,151,.10), rgba(46,196,182,.06), transparent 60%);
+  transform: rotate(18deg);
+  filter: blur(6px);
+  opacity: .8;
+  pointer-events:none;
+}
+
+.panel > *{ position:relative; z-index:1; }
+
+/* Tabs more “designed” (gradient ring + lift) */
+.tab{
+  background: rgba(255,255,255,.86);
+  border: 1px solid rgba(215,228,242,.95);
+  box-shadow: 0 10px 24px rgba(15,23,42,.06);
+}
+.tab.active{
+  background: linear-gradient(135deg, rgba(46,196,182,.18), rgba(42,111,151,.14));
+  border-color: rgba(46,196,182,.55);
+  box-shadow: 0 14px 36px rgba(15,23,42,.10);
 }

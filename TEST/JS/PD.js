@@ -6,7 +6,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const panel = document.getElementById("panel");
   if (!panel) return;
 
-  // ---------- helpers ----------
   const tabs = Array.from(document.querySelectorAll(".tab"));
 
   function setActiveTab(tabName) {
@@ -27,21 +26,8 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function clearSectionGlobals() {
-    // optional: clear flags you may use in tasks/feedback scripts
     delete window.__TASKS_MODE__;
     delete window.__FEEDBACK_MODE__;
-  }
-
-  function loadScript(src) {
-    // remove previous dynamic script (prevents duplicate handlers)
-    const old = document.querySelector(`script[data-dyn="${src}"]`);
-    if (old) old.remove();
-
-    const s = document.createElement("script");
-    s.src = src;
-    s.defer = true;
-    s.dataset.dyn = src;
-    document.body.appendChild(s);
   }
 
   // ---------- section loaders ----------
@@ -50,7 +36,6 @@ document.addEventListener("DOMContentLoaded", () => {
     setActiveTab("overview");
     await loadPartial("../HTML/overview.html");
 
-    // overview.js should export initOverview() OR just run on import
     const mod = await importFresh("../JS/overview.js");
     if (mod?.initOverview) await mod.initOverview();
   }
@@ -58,70 +43,34 @@ document.addEventListener("DOMContentLoaded", () => {
   async function showReports() {
     clearSectionGlobals();
     setActiveTab("reports");
-
     await loadPartial("../HTML/reports.html");
 
-    // reports.js should export initReports()
     const mod = await importFresh("../JS/reports.js");
     if (mod?.initReports) await mod.initReports();
   }
 
+  // --- TASKS ---
   async function showTasksView() {
     clearSectionGlobals();
     setActiveTab("tasks");
     window.__TASKS_MODE__ = "view";
 
-    panel.innerHTML = `
-      <div style="padding:18px">
-        <h2 style="margin:0 0 8px 0">Tasks</h2>
-        <div id="tasksRoot"></div>
-      </div>
-    `;
-
-    // tasks.js is a module and reads window.__TASKS_MODE__
-    const mod = await importFresh("../JS/tasks.js");
-    if (mod?.initTasks) await mod.initTasks();
-  }
-
-  async function showTasksAdd() {
-    clearSectionGlobals();
-    setActiveTab("tasks");
-    window.__TASKS_MODE__ = "add";
-
-    panel.innerHTML = `
-      <div style="padding:18px">
-        <h2 style="margin:0 0 8px 0">Add a task</h2>
-        <div id="tasksRoot"></div>
-      </div>
-    `;
+    panel.innerHTML = `<div id="tasksRoot" style="height:100%"></div>`;
 
     const mod = await importFresh("../JS/tasks.js");
-    if (mod?.initTasks) await mod.initTasks();
+    if (mod?.initTasks) await mod.initTasks("view");
   }
+
 
   // --- FEEDBACKS ---
-async function showFeedbacksView() {
+  async function showFeedbacks() {
   clearSectionGlobals();
-  setActiveTab("feedback");
-  window.__FEEDBACK_MODE__ = "view";
+  setActiveTab("feedbacks");
 
-  await loadPartial("./feedback.html");
-
+  await loadPartial("../HTML/feedback.html"); // <-- make sure path is correct
   const mod = await importFresh("../JS/feedback.js");
   if (mod?.initFeedbacks) await mod.initFeedbacks("view");
 }
-
-async function showFeedbacksAdd() {
-  clearSectionGlobals();
-  setActiveTab("feedback");
-  window.__FEEDBACK_MODE__ = "add";
-
-  await loadPartial("./feedback.html");
-
-  const mod = await importFresh("../JS/feedback.js");
-  if (mod?.initFeedbacks) await mod.initFeedbacks("add");
-}
-
 
 
   // ---------- tab click handling ----------
@@ -132,8 +81,8 @@ async function showFeedbacksAdd() {
       try {
         if (tabName === "overview") await showOverview();
         else if (tabName === "reports") await showReports();
-        else if (tabName === "tasks") await showTasksView(); // clicking "tasks ▾" defaults to view
-        else if (tabName === "feedbacks") await showFeedbacksView(); // clicking "feedbacks ▾" defaults to view
+        else if (tabName === "tasks") await showTasksView();
+        else if (tabName === "feedbacks") await showFeedbacks();
       } catch (e) {
         console.error(e);
         panel.textContent = "Something went wrong loading this section.";
@@ -141,23 +90,6 @@ async function showFeedbacksAdd() {
     });
   });
 
-  // ---------- dropdown actions ----------
-  document.querySelectorAll(".dropdown-menu button").forEach((btn) => {
-    btn.addEventListener("click", async () => {
-      const action = btn.dataset.action;
-
-      try {
-        if (action === "viewTasks") await showTasksView();
-        else if (action === "addTask") await showTasksAdd();
-        else if (action === "viewFeedbacks") await showFeedbacksView();
-        else if (action === "addFeedback") await showFeedbacksAdd();
-      } catch (err) {
-        console.error(err);
-        panel.textContent = "Failed to load section.";
-      }
-    });
-  });
-
-  // ---------- default ----------
+  // default
   showOverview();
 });

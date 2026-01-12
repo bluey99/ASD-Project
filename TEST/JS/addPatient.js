@@ -244,8 +244,15 @@ async function createPatient() {
 
     const pinHash = await sha256Hex(generatedPin);
 
-    // ✅ FIX: create inside "children"
     const newRef = doc(collection(db, "children"));
+
+    const therapistID = localStorage.getItem("therapistId");
+if (!therapistID) {
+  setStatus("You must login first.", true);
+  window.location.href = "login.html";
+  return;
+}
+
 
     await setDoc(newRef, {
       name: fullName,
@@ -255,7 +262,7 @@ async function createPatient() {
       username: generatedUsername,
       pinHash,
       role: "child",
-      therapistID: "999999999", // keep if you use it
+      therapistID: (localStorage.getItem("therapistId") || "unknown"),
       createdAt: serverTimestamp(),
     });
 

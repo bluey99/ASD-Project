@@ -1,12 +1,20 @@
 // ../JS/login.js
-import { auth, db } from "./firebase.js";
-import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { db } from "./firebase.js";
 import {
   collection,
   query,
   where,
   getDocs
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+// ✅ hash helper (no extra file)
+async function sha256(text) {
+  const enc = new TextEncoder().encode(text);
+  const hashBuf = await crypto.subtle.digest("SHA-256", enc);
+  return Array.from(new Uint8Array(hashBuf))
+    .map(b => b.toString(16).padStart(2, "0"))
+    .join("");
+}
 
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("loginForm");
@@ -20,8 +28,10 @@ document.addEventListener("DOMContentLoaded", () => {
       const isPassword = passwordEl.type === "password";
       passwordEl.type = isPassword ? "text" : "password";
       const icon = togglePassword.querySelector("i");
-      icon.classList.toggle("fa-eye");
-      icon.classList.toggle("fa-eye-slash");
+      if (icon) {
+        icon.classList.toggle("fa-eye");
+        icon.classList.toggle("fa-eye-slash");
+      }
     });
   }
 
@@ -29,8 +39,8 @@ document.addEventListener("DOMContentLoaded", () => {
     e.preventDefault();
     errorEl.textContent = "";
 
-    const email = emailEl.value.trim().toLowerCase();
-    const password = passwordEl.value;
+    const email = (emailEl.value || "").trim().toLowerCase();
+    const password = passwordEl.value || "";
 
     if (!email || !password) {
       errorEl.textContent = "Please fill in all fields.";
@@ -38,44 +48,34 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     try {
-      // 1) Auth login
-      const cred = await signInWithEmailAndPassword(auth, email, password);
-      const uid = cred.user.uid;
-
-      // 2) Find therapist profile by authUid
-      const q = query(collection(db, "therapists"), where("authUid", "==", uid));
-      const snap = await getDocs(q);
+      const qRef = query(collection(db, "therapists"), where("email", "==", email));
+      const snap = await getDocs(qRef);
 
       if (snap.empty) {
-        errorEl.textContent = "No therapist profile found for this account.";
+        errorEl.textContent = "Wrong email or password.";
         return;
       }
 
-      // 3) Save therapist profile locally (optional)
       const therapistDoc = snap.docs[0];
       const therapistData = therapistDoc.data();
 
+      const inputHash = await sha256(password);
+      if (inputHash !== therapistData.passwordHash) {
+        errorEl.textContent = "Wrong email or password.";
+        return;
+      }
+
+      localStorage.setItem("therapistId", therapistDoc.id);
       localStorage.setItem("moodiTherapist", JSON.stringify({
-        docId: therapistDoc.id,     // th2
+        therapistId: therapistDoc.id,
         ...therapistData
       }));
 
-      // 4) Redirect
       window.location.href = "index.html";
 
     } catch (err) {
       console.error(err);
-
-      if (err.code === "auth/invalid-credential") {
-        errorEl.textContent = "Wrong email or password.";
-      } else if (err.code === "auth/user-not-found") {
-        errorEl.textContent = "User not found.";
-      } else if (err.code === "auth/wrong-password") {
-        errorEl.textContent = "Wrong password.";
-      } else {
-        errorEl.textContent = err.message;
-      }
+      errorEl.textContent = "Login failed. Check console.";
     }
   });
 });
-

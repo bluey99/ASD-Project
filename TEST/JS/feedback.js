@@ -1,6 +1,7 @@
 // ../JS/feedback.js
 // Firestore CRUD for collection: "feedbacks"
-// fields: childID, therapistID, date(YYYY-MM-DD), time(HH:MM), title, description
+// fields: childID, parentID, therapistID, date(YYYY-MM-DD), time(HH:MM), title, description
+// + disables browser "field history" (autocomplete)
 
 import { db } from "./firebase.js";
 import {
@@ -8,6 +9,7 @@ import {
   addDoc,
   deleteDoc,
   doc,
+  getDoc,
   getDocs,
   query,
   updateDoc,
@@ -28,12 +30,31 @@ function getActiveChildId() {
 }
 
 function getTherapistId() {
-  return (
-    localStorage.getItem("therapistId") ||
-    localStorage.getItem("loggedInTherapistId") ||
-    localStorage.getItem("selectedTherapistId") ||
-    "unknown"
-  );
+  const direct = localStorage.getItem("therapistId");
+  if (direct) return direct;
+
+  const raw = localStorage.getItem("moodiTherapist");
+  if (raw) {
+    try {
+      const obj = JSON.parse(raw);
+      return obj?.docId || "unknown";
+    } catch {}
+  }
+  return "unknown";
+}
+
+// ✅ NEW: get parentID from /children/{childId}
+async function getParentIdForChild(childId) {
+  if (!childId) return null;
+  try {
+    const snap = await getDoc(doc(db, "children", childId));
+    if (!snap.exists()) return null;
+    const data = snap.data() || {};
+    return data.parentID || data.parentId || null;
+  } catch (err) {
+    console.error("Failed to read parentID for child:", err);
+    return null;
+  }
 }
 
 function combineKey(dateStr, timeStr) {
@@ -45,6 +66,41 @@ function setTodayDefaults() {
   const d = now.toISOString().split("T")[0];
   const t = now.toTimeString().slice(0, 5);
   return { d, t };
+}
+
+// ✅ disable browser field history / suggestions
+function disableFieldHistory() {
+  const form = $("fbForm");
+  if (form) form.setAttribute("autocomplete", "off");
+
+  const title = $("fbTitle");
+  const date = $("fbDate");
+  const time = $("fbTime");
+  const desc = $("fbDesc");
+
+  // browsers remember by "name", so give unique names too
+  if (title) {
+    title.setAttribute("autocomplete", "off");
+    title.setAttribute("autocapitalize", "off");
+    title.setAttribute("autocorrect", "off");
+    title.setAttribute("spellcheck", "false");
+    title.setAttribute("name", "fbTitle_nohistory");
+  }
+  if (date) {
+    date.setAttribute("autocomplete", "off");
+    date.setAttribute("name", "fbDate_nohistory");
+  }
+  if (time) {
+    time.setAttribute("autocomplete", "off");
+    time.setAttribute("name", "fbTime_nohistory");
+  }
+  if (desc) {
+    desc.setAttribute("autocomplete", "off");
+    desc.setAttribute("autocapitalize", "off");
+    desc.setAttribute("autocorrect", "off");
+    desc.setAttribute("spellcheck", "false");
+    desc.setAttribute("name", "fbDesc_nohistory");
+  }
 }
 
 let feedbackRows = [];
@@ -61,6 +117,7 @@ async function fetchFeedbacks(childId) {
     rows.push({
       id: d.id,
       childID: data.childID,
+      parentID: data.parentID || "",
       therapistID: data.therapistID,
       date: data.date || "",
       time: data.time || "",
@@ -119,12 +176,17 @@ function renderTable() {
 function showList() {
   $("fbListView")?.classList.remove("hidden");
   $("fbFormView")?.classList.add("hidden");
+  document.querySelector(".fb-filters")?.classList.remove("hidden");
   editingId = null;
 }
 
 function showForm(editFb = null) {
   $("fbListView")?.classList.add("hidden");
   $("fbFormView")?.classList.remove("hidden");
+  document.querySelector(".fb-filters")?.classList.add("hidden");
+
+  // ✅ apply no-history settings whenever form is shown
+  disableFieldHistory();
 
   const formTitle = $("fbFormTitle");
   const titleEl = $("fbTitle");
@@ -171,6 +233,7 @@ async function loadAndRender() {
 async function addFeedback(data) {
   await addDoc(collection(db, "feedbacks"), {
     childID: data.childID,
+    parentID: data.parentID,
     therapistID: data.therapistID,
     title: data.title,
     date: data.date,
@@ -196,7 +259,7 @@ async function deleteFeedback(id) {
 }
 
 function bindUIOnce() {
-  if (isBound) return; // prevent double-binding when switching tabs
+  if (isBound) return;
   isBound = true;
 
   $("fbRefreshBtn")?.addEventListener("click", loadAndRender);
@@ -247,8 +310,15 @@ function bindUIOnce() {
       return;
     }
 
+    const parentID = await getParentIdForChild(childId);
+    if (!parentID) {
+      alert("Could not find parentID for this child in Firestore (children collection).");
+      return;
+    }
+
     await addFeedback({
       childID: childId,
+      parentID,
       therapistID: getTherapistId(),
       title,
       date,
@@ -261,10 +331,12 @@ function bindUIOnce() {
   });
 }
 
-// ✅ exported init (PD.js will call this after loading feedbacks.html)
+// ✅ exported init
 export async function initFeedbacks(mode = "view") {
-  // reset bind flag every time partial is reloaded (new DOM nodes)
   isBound = false;
+
+  // ensure form has no-history settings even if user opens form later
+  disableFieldHistory();
 
   bindUIOnce();
   await loadAndRender();

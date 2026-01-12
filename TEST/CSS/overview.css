@@ -1,10 +1,10 @@
-/* ../CSS/overview.css */
+/* ../CSS/overview.css — matches theme.css (login/signup look) */
 
 /* ---------- base wrappers ---------- */
 .ov-wrap{
   max-width: 980px;
   margin: 0 auto;
-  padding: 22px 18px 28px;
+  padding: 18px 18px 24px;
   animation: ovFade .35s ease both;
 }
 
@@ -25,62 +25,59 @@
 .ov-title{
   margin:0;
   font-size: 22px;
-  font-weight: 800;
+  font-weight: 900;
   letter-spacing: -0.02em;
-  color:#0f172a;
+  color: var(--ink);
 }
 
 .ov-sub{
   margin:6px 0 0;
   font-size: 13px;
-  color:#64748b;
+  color: var(--muted);
 }
 
-/* ---------- buttons ---------- */
+/* ---------- buttons ----------
+   IMPORTANT: .btn-primary is already defined in theme.css
+   So here we only define ghost/light buttons and override reset width.
+*/
 .btn-ghost,
-.btn-light,
-.btn-primary{
-  border: 1px solid #cbd5e1;
-  background:#fff;
-  color:#0f172a;
-  padding: 9px 12px;
+.btn-light{
+  border: 1px solid rgba(215,228,242,.95);
+  background: rgba(255,255,255,.88);
+  color: var(--ink);
+
+  padding: 10px 14px;
   border-radius: 12px;
-  font-weight: 600;
+
+  font-weight: 800;
   font-size: 13px;
+
   cursor:pointer;
-  transition: transform .08s ease, box-shadow .15s ease, background .15s ease;
-  box-shadow: 0 1px 0 rgba(15,23,42,.06);
+  transition: transform .12s ease, box-shadow .2s ease, background .2s ease;
+  box-shadow: 0 10px 24px rgba(15,23,42,.06);
 }
 
 .btn-ghost:hover,
 .btn-light:hover{
-  background:#f8fafc;
-  box-shadow: 0 6px 18px rgba(2,6,23,.08);
+  background: rgba(248,250,252,.96);
   transform: translateY(-1px);
+  box-shadow: 0 14px 34px rgba(15,23,42,.10);
 }
 
-.btn-primary{
-  width:100%;
-  border: none;
-  background: #1f5d5f;
-  color:#fff;
-  padding: 11px 14px;
-  border-radius: 14px;
-  box-shadow: 0 10px 22px rgba(31,93,95,.18);
-}
-
-.btn-primary:hover{
-  transform: translateY(-1px);
-  box-shadow: 0 14px 26px rgba(31,93,95,.22);
-}
-
-.btn-primary:disabled,
+.btn-ghost:disabled,
 .btn-light:disabled,
-.btn-ghost:disabled{
+.btn-primary:disabled{
   opacity:.55;
   cursor:not-allowed;
   transform:none;
   box-shadow:none;
+}
+
+/* ✅ Reset PIN should match login button and be full width */
+#btnResetPin.btn-primary{
+  width: 70%;
+  margin-top: 10px;
+  padding: 12px 12px; 
 }
 
 /* ---------- top mini cards ---------- */
@@ -92,42 +89,46 @@
 }
 
 .ov-mini{
-  border: 1px solid #e2e8f0;
-  background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
-  border-radius: 16px;
-  padding: 14px 16px;
-  box-shadow: 0 10px 26px rgba(2,6,23,.06);
+  border: 1px solid rgba(215,228,242,.95);
+  background: rgba(255,255,255,.92);
+  border-radius: 18px;
+  padding: 16px;
+  box-shadow: 0 18px 60px rgba(15,23,42,.08);
   position: relative;
   overflow: hidden;
 }
 
-.ov-mini::after{
+/* soft premium glow */
+.ov-mini::before{
   content:"";
   position:absolute;
-  right:-28px;
-  top:-40px;
-  width: 130px;
-  height: 140px;
-  background: radial-gradient(circle at 30% 30%, rgba(8,95,99,.18), rgba(8,95,99,0));
-  transform: rotate(12deg);
+  inset:0;
+  pointer-events:none;
+  background:
+    radial-gradient(500px 180px at 20% 0%, rgba(46,196,182,.10), transparent 60%),
+    radial-gradient(500px 180px at 80% 0%, rgba(42,111,151,.10), transparent 60%);
+  opacity:.9;
 }
+
+.ov-mini > *{ position:relative; z-index:1; }
 
 .ov-mini-label{
   font-size: 12px;
-  color:#64748b;
+  color: var(--muted);
   margin-bottom: 6px;
+  font-weight: 700;
 }
 
 .ov-mini-value{
   font-size: 18px;
-  font-weight: 800;
-  color:#0f172a;
+  font-weight: 900;
+  color: var(--ink);
 }
 
 .ov-mini-foot{
   margin-top: 6px;
   font-size: 12px;
-  color:#64748b;
+  color: var(--muted);
 }
 
 /* ---------- main grid (2 cards) ---------- */
@@ -140,12 +141,31 @@
 
 /* ---------- card ---------- */
 .ov-card{
-  border: 1px solid #e2e8f0;
-  background:#fff;
-  border-radius: 16px;
-  padding: 14px 16px;
-  box-shadow: 0 12px 30px rgba(2,6,23,.06);
+  border: 1px solid rgba(215,228,242,.95);
+  background: rgba(255,255,255,.92);
+  border-radius: 18px;
+  padding: 16px;
+  box-shadow: 0 18px 60px rgba(15,23,42,.10);
+  position: relative;
+  overflow: hidden;
 }
+
+/* subtle diagonal sheen for creativity */
+.ov-card::after{
+  content:"";
+  position:absolute;
+  top:-40%;
+  right:-35%;
+  width: 420px;
+  height: 420px;
+  background: linear-gradient(135deg, rgba(42,111,151,.10), rgba(46,196,182,.06), transparent 60%);
+  transform: rotate(18deg);
+  filter: blur(6px);
+  opacity: .8;
+  pointer-events:none;
+}
+
+.ov-card > *{ position:relative; z-index:1; }
 
 .ov-card-head{
   display:flex;
@@ -158,17 +178,18 @@
 .ov-card h3{
   margin:0;
   font-size: 15px;
-  font-weight: 800;
-  color:#0f172a;
+  font-weight: 900;
+  color: var(--ink);
 }
 
 .ov-age-mini{
   font-size: 12px;
-  color:#64748b;
-  background:#f1f5f9;
-  border: 1px solid #e2e8f0;
+  color: var(--muted);
+  background: rgba(248,250,252,.92);
+  border: 1px solid rgba(215,228,242,.95);
   padding: 6px 10px;
   border-radius: 999px;
+  font-weight: 800;
 }
 
 /* ---------- rows ---------- */
@@ -177,7 +198,7 @@
   justify-content:space-between;
   align-items:center;
   padding: 10px 2px;
-  border-bottom: 1px dashed #e2e8f0;
+  border-bottom: 1px dashed rgba(215,228,242,.95);
 }
 
 .ov-row:last-of-type{
@@ -186,13 +207,14 @@
 
 .ov-key{
   font-size: 12px;
-  color:#64748b;
+  color: var(--muted);
+  font-weight: 700;
 }
 
 .ov-val{
   font-size: 13px;
-  font-weight: 700;
-  color:#0f172a;
+  font-weight: 900;
+  color: var(--ink);
 }
 
 /* ---------- actions ---------- */
@@ -206,29 +228,30 @@
 .ov-hint{
   margin-top: 12px;
   font-size: 12px;
-  color:#64748b;
+  color: var(--muted);
 }
 
 /* ---------- pin box ---------- */
 .pin-box{
   margin-top: 12px;
-  border: 1px solid #e2e8f0;
-  background: #fbfdff;
-  border-radius: 14px;
-  padding: 12px;
+  border: 1px solid rgba(215,228,242,.95);
+  background: rgba(248,250,252,.75);
+  border-radius: 16px;
+  padding: 14px;
 }
 
 .pin-label{
   font-size: 12px;
-  color:#64748b;
+  color: var(--muted);
+  font-weight: 800;
 }
 
 .pin-value{
   margin-top: 8px;
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 900;
-  letter-spacing: 0.08em;
-  color:#0f172a;
+  letter-spacing: 0.10em;
+  color: var(--ink);
 }
 
 .pin-actions{
@@ -240,14 +263,14 @@
 .pin-hint{
   margin-top: 10px;
   font-size: 12px;
-  color:#64748b;
+  color: var(--muted);
 }
 
 /* ---------- created at ---------- */
 .ov-created{
   margin-top: 12px;
   font-size: 12px;
-  color:#64748b;
+  color: var(--muted);
   text-align:right;
 }
 
@@ -276,10 +299,45 @@
 
 /* ---------- responsive ---------- */
 @media (max-width: 900px){
-  .ov-grid{
-    grid-template-columns: 1fr;
-  }
-  .ov-top{
-    grid-template-columns: 1fr;
-  }
+  .ov-grid{ grid-template-columns: 1fr; }
+  .ov-top{ grid-template-columns: 1fr; }
+}
+/* ===========================
+   FORCE Reset PIN = Login Button
+   (fixes any old btn-primary rules)
+   =========================== */
+#btnResetPin{
+  width:100%;
+  border:none;
+  border-radius:12px;
+
+  padding:12px 16px;
+  background: linear-gradient(135deg, var(--primary), var(--primary2));
+  color:#fff;
+
+  font-weight:800;
+  letter-spacing:.4px;
+  font-size:14px;
+
+  cursor:pointer;
+  box-shadow: 0 12px 26px rgba(15,61,94,.25);
+  transition: transform .12s ease, box-shadow .2s ease, filter .2s ease;
+}
+
+#btnResetPin:hover{
+  transform: translateY(-1px);
+  box-shadow: 0 16px 34px rgba(15,61,94,.30);
+  filter: saturate(1.05);
+}
+
+#btnResetPin:active{
+  transform: translateY(0);
+  box-shadow: 0 10px 22px rgba(15,61,94,.22);
+}
+
+#btnResetPin:disabled{
+  opacity:.6;
+  cursor:not-allowed;
+  transform:none;
+  box-shadow:none;
 }

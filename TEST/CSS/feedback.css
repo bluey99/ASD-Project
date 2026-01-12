@@ -1,72 +1,102 @@
-/* ../CSS/feedback.css */
+/* ../CSS/feedback.css (theme-matching, login vibe, clean) */
 
 .fb-page{
-  padding: 18px;
+  width: 100%;
+  height: 100%;
+  padding: 18px 18px 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  animation: fbFade .35s ease both;
 }
 
-/* Header */
+@keyframes fbFade{
+  from{ opacity:0; transform: translateY(6px); }
+  to{ opacity:1; transform: translateY(0); }
+}
+
+/* ---------- header ---------- */
 .fb-header{
   display:flex;
   align-items:flex-start;
   justify-content:space-between;
   gap: 14px;
-  margin-bottom: 14px;
 }
 
 .fb-title{
   margin:0;
-  font-size: 20px;
-  font-weight: 800;
-  color:#0f172a;
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  color: var(--ink);
 }
 
 .fb-subtitle{
-  margin:4px 0 0 0;
+  margin:6px 0 0 0;
   font-size: 13px;
-  color:#64748b;
+  color: rgba(91,107,132,.95);
 }
 
 .fb-actions{
   display:flex;
   gap:10px;
   align-items:center;
+  flex: 0 0 auto;
 }
 
-/* Buttons (matches your style) */
+/* ---------- buttons (match login gradient vibe) ---------- */
 .btn-lite{
-  border: 1px solid rgba(15, 23, 42, .12);
-  background:#ffffff;
-  padding: 8px 12px;
-  border-radius: 10px;
-  font-weight: 700;
-  font-size: 13px;
-  color:#0f172a;
-  cursor:pointer;
-  transition: .12s ease;
-}
-.btn-lite:hover{ background: rgba(2,132,199,.06); }
-
-.btn-primary{
-  border: 1px solid rgba(59,130,246,.35);
-  background: rgba(59,130,246,.12);
-  padding: 8px 12px;
-  border-radius: 10px;
+  border: 1px solid rgba(215,228,242,.95);
+  background: rgba(255,255,255,.92);
+  padding: 10px 14px;
+  border-radius: 12px;
   font-weight: 800;
   font-size: 13px;
-  color:#1d4ed8;
+  color: var(--ink);
   cursor:pointer;
-  transition: .12s ease;
-  width: 100px;
+  box-shadow: 0 10px 22px rgba(15,23,42,.06);
+  transition: transform .12s ease, box-shadow .2s ease, background .2s ease;
 }
-.btn-primary:hover{ background: rgba(59,130,246,.18); }
+.btn-lite:hover{
+  transform: translateY(-1px);
+  background: rgba(255,255,255,.98);
+  box-shadow: 0 14px 28px rgba(15,23,42,.10);
+}
+.btn-lite:active{ transform: translateY(0); }
 
-/* Filters */
+/* primary = login button style */
+.btn-primary{
+  border: none;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-weight: 900;
+  font-size: 13px;
+  letter-spacing: .3px;
+  color: #fff;
+  cursor:pointer;
+  background: linear-gradient(135deg, var(--primary), var(--primary2));
+  box-shadow: 0 12px 26px rgba(15,61,94,.25);
+  transition: transform .12s ease, box-shadow .2s ease, filter .2s ease;
+  width: auto;               /* IMPORTANT: remove fixed 100px */
+  min-width: 130px;          /* nicer balance */
+}
+.btn-primary:hover{
+  transform: translateY(-1px);
+  box-shadow: 0 16px 34px rgba(15,61,94,.30);
+  filter: saturate(1.05);
+}
+.btn-primary:active{
+  transform: translateY(0px);
+  box-shadow: 0 10px 22px rgba(15,61,94,.22);
+}
+
+/* ---------- filters row ---------- */
 .fb-filters{
   display:flex;
   gap: 14px;
   align-items:end;
-  margin-bottom: 12px;
   flex-wrap: wrap;
+  flex: 0 0 auto;
 }
 
 .fb-field, .fb-sort, .fb-date{
@@ -77,37 +107,70 @@
 
 .fb-label{
   font-size: 12px;
-  color:#475569;
-  font-weight:700;
+  color: rgba(91,107,132,.95);
+  font-weight: 800;
+  letter-spacing: .02em;
 }
 
 .fb-input, .fb-select, .fb-textarea{
-  border: 1px solid rgba(15, 23, 42, .14);
-  border-radius: 10px;
-  padding: 10px 12px;
+  width: 100%;
+  background: rgba(248,250,252,.95);
+  border: 1px solid rgba(203,213,225,.95);
+  border-radius: 12px;
+  padding: 12px 14px;
   font-size: 14px;
-  color:#0f172a;
-  background:#fff;
+  color: var(--ink);
   outline:none;
+  transition: box-shadow .2s ease, border-color .2s ease;
 }
+
 .fb-input:focus, .fb-select:focus, .fb-textarea:focus{
-  border-color: rgba(59,130,246,.55);
-  box-shadow: 0 0 0 3px rgba(59,130,246,.12);
+  border-color: rgba(46,196,182,.9);
+  box-shadow: 0 0 0 4px rgba(46,196,182,.18);
 }
 
-/* Card */
+/* ---------- cards (list + form) ---------- */
 .fb-card{
-  background:#ffffff;
-  border: 1px solid rgba(15, 23, 42, .08);
-  border-radius: 14px;
-  overflow:hidden;
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  background: rgba(255,255,255,.92);
+  border: 1px solid rgba(215,228,242,.95);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+#fbFormView.fb-card {
+        /* ⬅ stop growing */
+  width: min(1200px, 92%);
+  margin: 0 auto;
 }
 
-/* Table */
+/* soft glow like login */
+.fb-card::before{
+  content:"";
+  height: 56px;
+  width: 100%;
+  display:block;
+  background:
+    radial-gradient(140px 60px at 18% 20%, rgba(46,196,182,.22), transparent 70%),
+    radial-gradient(180px 70px at 88% 20%, rgba(42,111,151,.22), transparent 70%);
+  opacity: .55;
+}
+
+/* ---------- table wrapper ---------- */
 .fb-table-wrap{
+  flex: 1 1 auto;
+  min-height: 0;
   overflow:auto;
+  margin-top: -56px;          /* pull content over glow */
+  padding: 10px 0 6px;
 }
 
+/* ---------- table ---------- */
 .fb-table{
   width:100%;
   border-collapse: collapse;
@@ -118,62 +181,82 @@
   text-transform: lowercase;
   letter-spacing: .02em;
   font-size: 12px;
-  color:#475569;
-  font-weight: 800;
+  color: rgba(91,107,132,.95);
+  font-weight: 900;
   text-align:left;
-  padding: 10px 14px;
-  background:#ffffff;
-  border-bottom: 1px solid rgba(15, 23, 42, .06);
+  padding: 12px 16px;
+  background: rgba(255,255,255,.92);
+  border-bottom: 1px solid rgba(215,228,242,.85);
+  position: sticky;
+  top: 0;
+  z-index: 2;
 }
 
 .fb-table tbody td{
-  padding: 12px 14px;
-  border-bottom: 1px solid rgba(15, 23, 42, .06);
-  color:#0f172a;
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(215,228,242,.85);
+  color: var(--ink);
   vertical-align: top;
 }
 
+.fb-table tbody tr{
+  transition: background .12s ease;
+}
 .fb-table tbody tr:hover{
-  background: rgba(15, 23, 42, .02);
+  background: rgba(46,196,182,.06);
 }
 
-.col-actions{ width: 120px; }
+/* Column sizing */
+.col-actions{ width: 140px; }
 .col-date{ width: 120px; }
 .col-time{ width: 90px; }
 .col-title{ width: 220px; }
 
+/* links in actions cell */
 .fb-actions-cell a{
-  color:#2563eb;
-  text-decoration: underline;
-  font-weight:700;
+  color: var(--primary2);
+  text-decoration: none;
+  font-weight: 900;
   cursor:pointer;
+  padding: 6px 8px;
+  border-radius: 10px;
+  transition: background .12s ease;
+}
+.fb-actions-cell a:hover{
+  background: rgba(42,111,151,.10);
+}
+.fb-actions-cell a:active{
+  background: rgba(42,111,151,.16);
 }
 
 .fb-empty{
   text-align:center;
-  color:#64748b;
-  padding: 26px 14px !important;
+  color: rgba(91,107,132,.95);
+  padding: 26px 16px !important;
 }
 
-/* Form */
-.fb-form{
+/* ---------- form view ---------- */
+#fbFormView{
   padding: 16px;
-  margin-top: 12px;
+  margin-top: -56px;          /* align with glow */
 }
 
 .fb-form-title{
-  margin: 0 0 12px 0;
+  margin: 2px 0 12px 0;
   font-size: 18px;
   font-weight: 900;
-  color:#0f172a;
+  color: var(--ink);
 }
 
 .fb-form-grid{
+  flex: 1 1 auto;
+  min-height: 0;
   display:flex;
   flex-direction:column;
   gap: 12px;
 }
 
+/* two-column row */
 .fb-row{
   display:grid;
   grid-template-columns: 1fr 1fr;
@@ -184,85 +267,22 @@
   .fb-row{ grid-template-columns: 1fr; }
 }
 
-.fb-buttons{
-  display:flex;
-  gap: 10px;
-  justify-content:flex-start;
-  margin-top: 4px;
-}
-
-.hidden{ display:none !important; }
-
-/* =========================================
-   FEEDBACKS: make it fill the whole white panel
-   (append at END of feedback.css)
-========================================= */
-
-#feedbackRoot {
-  width: 100%;
-  height: 100%;
-}
-
-/* Make the whole page fill the panel */
-.fb-page {
-  width: 100%;
-  height: 100%;
-  min-height: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-/* Header + filters should NOT grow */
-.fb-header,
-.fb-filters {
-  flex: 0 0 auto;
-}
-
-/* Cards should grow to fill remaining space */
-.fb-card {
-  flex: 1 1 auto;
-  min-height: 0; /* IMPORTANT so inner scrolling works */
-  width: 90%;
-  display: flex;
-  flex-direction: column;
-}
-
-/* Table area takes the card height and scrolls */
-.fb-table-wrap {
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow: auto;
-}
-
-/* Table full width */
-.fb-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-/* Make the form card also fill */
-#fbFormView.fb-card {
-  flex: 1 1 auto;
-  min-height: 0;
-}
-
-/* Let form itself use the space nicely */
-.fb-form-grid {
-  flex: 1 1 auto;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-}
-
-/* Description grows (optional but makes it look full) */
-.fb-textarea {
-  flex: 1 1 auto;
+/* textarea feels “full” */
+.fb-textarea{
+  max-height: 160px;
   min-height: 180px;
   resize: vertical;
 }
 
-/* Keep buttons at bottom */
-.fb-buttons {
+/* buttons at bottom */
+.fb-buttons{
+  display:flex;
+  gap: 10px;
   margin-top: auto;
 }
+
+/* keep your hidden util */
+.hidden{ display:none !important; }
+
+.fb-filters.hidden { display: none !important; }
+

@@ -2,7 +2,9 @@
 import { db } from "./firebase.js";
 import {
   collection,
-  getDocs
+  getDocs,
+  query,
+  where
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // ====== Global list from Firestore ======
@@ -28,7 +30,7 @@ const addPersonSVG = `
 
 function buildAddCard() {
   const article = document.createElement("article");
-  article.className = "card add";
+  article.className = "patient-card add";
   article.innerHTML = `
     <div class="icon" aria-hidden="true">${addPersonSVG}</div>
     <div class="name">add new patient</div>
@@ -49,7 +51,7 @@ function buildAddCard() {
 
 function buildPatientCard(name, code, childDocId) {
   const article = document.createElement("article");
-  article.className = "card";
+  article.className = "patient-card";
   article.setAttribute("role", "button");
   article.setAttribute("tabindex", "0");
 
@@ -117,7 +119,7 @@ function setupArrows() {
   if (!rail || !prev || !next) return;
 
   function cardStep() {
-    const firstCard = rail.querySelector(".card");
+    const firstCard = rail.querySelector(".patient-card");
     const w = firstCard ? firstCard.getBoundingClientRect().width : 280;
     return Math.round(w + 16);
   }
@@ -149,24 +151,38 @@ function setupNotifications() {
 
 async function loadChildrenFromFirestore() {
   try {
-    // ✅ FIX: collection is "children"
-    const snap = await getDocs(collection(db, "children"));
+    const therapistId = localStorage.getItem("therapistId");
+
+    if (!therapistId) {
+      // not logged in → go login
+      window.location.href = "login.html";
+      return;
+    }
+
+    // ✅ only my patients
+    const qRef = query(
+      collection(db, "children"),
+      where("therapistID", "==", therapistId)
+    );
+
+    const snap = await getDocs(qRef);
 
     patients = snap.docs.map((docSnap) => {
       const d = docSnap.data();
       return {
-        id: docSnap.id,              // firestore doc id
+        id: docSnap.id,
         name: d.name || "Unnamed",
-        childID: d.childID || "",    // 9 digit
+        childID: d.childID || "",
         parentID: d.parentID || "",
-        code: d.childID || ""        // show childID as code on card (nice)
+        code: d.childID || ""
       };
     });
 
     renderCards(patients);
     setupSearch();
     setupArrows();
-    console.log("Loaded children ✅", patients);
+    console.log("Loaded MY children ✅", therapistId, patients);
+
   } catch (err) {
     console.error("Failed to load children ❌", err);
     patients = [];
@@ -175,6 +191,7 @@ async function loadChildrenFromFirestore() {
     setupArrows();
   }
 }
+
 
 document.addEventListener("DOMContentLoaded", () => {
   setupNotifications();

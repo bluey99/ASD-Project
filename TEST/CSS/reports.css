@@ -1,10 +1,18 @@
-/* ../CSS/reports.css */
+/* ../CSS/reports.css (theme-matching, clean, no duplicates) */
 
 .reports-page{
-  padding: 18px;
+  width: 100%;
+  height: 100%;
+  padding: 18px 18px 26px;
+  animation: repFade .35s ease both;
 }
 
-/* Header */
+@keyframes repFade{
+  from{ opacity:0; transform: translateY(6px); }
+  to{ opacity:1; transform: translateY(0); }
+}
+
+/* ---------- header ---------- */
 .reports-header{
   display:flex;
   align-items:flex-start;
@@ -15,15 +23,16 @@
 
 .reports-title{
   margin:0;
-  font-size: 20px;
-  font-weight: 800;
-  color:#0f172a;
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  color: var(--ink);
 }
 
 .reports-subtitle{
-  margin:4px 0 0 0;
+  margin:6px 0 0 0;
   font-size: 13px;
-  color:#64748b;
+  color: rgba(91,107,132,.95);
 }
 
 .reports-actions{
@@ -32,111 +41,141 @@
   align-items:center;
 }
 
+/* refresh button like login vibe */
 .btn-lite{
-  border: 1px solid rgba(15, 23, 42, .12);
-  background:#ffffff;
-  padding: 8px 12px;
-  border-radius: 10px;
-  font-weight: 700;
+  border: 1px solid rgba(215,228,242,.95);
+  background: rgba(255,255,255,.92);
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-weight: 800;
   font-size: 13px;
-  color:#0f172a;
+  color: var(--ink);
   cursor:pointer;
-  transition: .12s ease;
+  box-shadow: 0 10px 22px rgba(15,23,42,.06);
+  transition: transform .12s ease, box-shadow .2s ease, background .2s ease;
 }
-.btn-lite:hover{ background: rgba(2,132,199,.06); }
+.btn-lite:hover{
+  transform: translateY(-1px);
+  background: rgba(255,255,255,.98);
+  box-shadow: 0 14px 28px rgba(15,23,42,.10);
+}
+.btn-lite:active{ transform: translateY(0); }
 
-/* Grid */
+/* ---------- layout ---------- */
 .reports-grid{
   display:grid;
-  grid-template-columns: 1.2fr .9fr;
+  grid-template-columns: 1.15fr .85fr;
   gap: 14px;
-  align-items:start;
+  align-items: stretch;
 }
 
 @media (max-width: 980px){
   .reports-grid{ grid-template-columns: 1fr; }
 }
 
-/* Cards */
+/* ---------- cards ---------- */
 .reports-card{
-  background:#ffffff;
-  border: 1px solid rgba(15, 23, 42, .08);
-  border-radius: 14px;
-  overflow:hidden;
+  background: rgba(255,255,255,.92);
+  border: 1px solid rgba(215,228,242,.95);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  display:flex;
+  flex-direction: column;
+  min-height: 480px; /* makes the white box bigger */
 }
 
+/* subtle top glow like login */
+.reports-card::before{
+  content:"";
+  height: 56px;
+  width: 100%;
+  display:block;
+  background:
+    radial-gradient(140px 60px at 18% 20%, rgba(46,196,182,.22), transparent 70%),
+    radial-gradient(180px 70px at 88% 20%, rgba(42,111,151,.22), transparent 70%);
+  opacity: .55;
+}
+
+/* ---------- card head ---------- */
 .reports-card-head{
-  padding: 12px 14px;
+  margin-top: -56px; /* pull head over glow */
+  padding: 14px 16px;
   display:flex;
   align-items:center;
   justify-content:space-between;
   gap: 12px;
-  border-bottom: 1px solid rgba(15, 23, 42, .06);
-  background: rgba(2,132,199,.03);
+  border-bottom: 1px solid rgba(215,228,242,.85);
+  background: rgba(255,255,255,.72);
+  backdrop-filter: blur(10px);
 }
 
 .reports-pill{
   display:inline-flex;
   align-items:center;
   gap:8px;
-  padding: 6px 10px;
+  padding: 7px 12px;
   border-radius: 999px;
-  font-weight:800;
+  font-weight: 900;
   font-size: 12px;
-  color:#1d4ed8;
-  border: 1px solid rgba(59,130,246,.25);
-  background: rgba(59,130,246,.08);
+  color: var(--primary);
+  border: 1px solid rgba(46,196,182,.35);
+  background: rgba(46,196,182,.10);
 }
 
-/* Filter */
+/* ---------- toggle filter ---------- */
 .reports-filter{
   display:flex;
   align-items:center;
   gap: 10px;
 }
+
 .filter-text{
   font-size: 12px;
-  color:#475569;
-  font-weight:600;
+  color: rgba(91,107,132,.95);
+  font-weight: 700;
 }
 
-/* Switch */
+/* Switch (theme style) */
 .switch{
   position: relative;
   display: inline-block;
-  width: 42px;
-  height: 22px;
+  width: 44px;
+  height: 24px;
 }
 .switch input{ display:none; }
+
 .slider{
   position:absolute;
   cursor:pointer;
   inset:0;
-  background:#e2e8f0;
+  background: rgba(203,213,225,.75);
   border-radius:999px;
   transition:.15s ease;
-  border:1px solid rgba(15,23,42,.10);
+  border:1px solid rgba(15,23,42,.12);
 }
 .slider:before{
   position:absolute;
   content:"";
-  height: 18px; width: 18px;
+  height: 20px; width: 20px;
   left:2px; top:1px;
-  background:#fff;
+  background: #fff;
   border-radius:999px;
-  box-shadow: 0 1px 2px rgba(0,0,0,.15);
+  box-shadow: 0 6px 16px rgba(15,23,42,.15);
   transition:.15s ease;
 }
 .switch input:checked + .slider{
-  background: rgba(59,130,246,.45);
+  background: linear-gradient(135deg, rgba(15,61,94,.75), rgba(42,111,151,.75));
 }
 .switch input:checked + .slider:before{
   transform: translateX(20px);
 }
 
-/* Table */
+/* ---------- table ---------- */
 .table-wrap{
+  flex: 1;
   overflow:auto;
+  padding: 2px 0 6px;
 }
 
 .reports-table{
@@ -149,69 +188,73 @@
   text-transform: lowercase;
   letter-spacing: .02em;
   font-size: 12px;
-  color:#475569;
-  font-weight: 800;
+  color: rgba(91,107,132,.95);
+  font-weight: 900;
   text-align:left;
-  padding: 10px 14px;
-  background:#ffffff;
-  border-bottom: 1px solid rgba(15, 23, 42, .06);
-}
-
-.details-body {
-  flex: 1;
-  overflow-y: auto;       /* scroll if many fields */
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(215,228,242,.85);
+  background: rgba(255,255,255,.92);
+  position: sticky;
+  top: 0;
+  z-index: 2;
 }
 
 .reports-table tbody td{
-  padding: 12px 14px;
-  border-bottom: 1px solid rgba(15, 23, 42, .06);
-  color:#0f172a;
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(215,228,242,.85);
+  color: var(--ink);
 }
 
+.reports-table tbody tr{
+  transition: background .12s ease;
+}
 .reports-table tbody tr:hover{
-  background: rgba(15, 23, 42, .02);
+  background: rgba(46,196,182,.06);
 }
 
 .col-emoji{ width: 56px; text-align:center; }
-.col-open{ width: 68px; text-align:center; }
+.col-open{ width: 74px; text-align:center; }
 
-.emoji{
-  font-size: 18px;
-}
+.emoji{ font-size: 18px; }
 
+/* open button like mini action (theme) */
 .open-btn{
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
-  border: 1px solid rgba(15, 23, 42, .10);
-  background:#fff;
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  border: 1px solid rgba(215,228,242,.95);
+  background: rgba(255,255,255,.92);
   cursor:pointer;
   font-weight: 900;
-  transition:.12s ease;
+  color: var(--primary);
+  box-shadow: 0 10px 20px rgba(15,23,42,.06);
+  transition: transform .12s ease, box-shadow .2s ease, background .2s ease;
 }
 .open-btn:hover{
-  background: rgba(59,130,246,.10);
-  border-color: rgba(59,130,246,.25);
+  transform: translateY(-1px);
+  background: rgba(255,255,255,.98);
+  box-shadow: 0 14px 28px rgba(15,23,42,.10);
 }
+.open-btn:active{ transform: translateY(0); }
 
 .reports-empty{
   text-align:center;
-  color:#64748b;
-  padding: 26px 14px !important;
+  color: rgba(91,107,132,.95);
+  padding: 26px 16px !important;
 }
 
-/* Details */
-.reports-details {
-  height: 520px;          /* pick a value you like */
-  display: flex;
-  flex-direction: column;
+/* ---------- details panel ---------- */
+.reports-details{
+  min-height: 480px;
+  overflow: hidden;
 }
 
 .details-empty{
-  min-height: 260px;
-  border: 1px dashed rgba(15, 23, 42, .14);
-  border-radius: 12px;
-  background: rgba(2,132,199,.03);
+  margin: 14px 16px 16px;
+  min-height: 240px;
+  border: 1px dashed rgba(215,228,242,.95);
+  border-radius: 16px;
+  background: rgba(46,196,182,.06);
   display:flex;
   flex-direction:column;
   align-items:center;
@@ -220,51 +263,57 @@
   padding: 18px;
 }
 
-.details-emoji{
-  font-size: 34px;
-}
+.details-emoji{ font-size: 34px; }
 .details-title{
   margin-top: 8px;
   font-weight: 900;
-  color:#0f172a;
+  color: var(--ink);
 }
 .details-sub{
   margin-top: 4px;
   font-size: 12px;
-  color:#64748b;
+  color: rgba(91,107,132,.95);
 }
 
 .details-body.hidden{ display:none; }
 
+.details-body{
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px 16px 18px;
+}
+
+/* details head */
 .details-head{
   display:flex;
   gap: 12px;
   align-items:center;
   padding-bottom: 12px;
-  border-bottom: 1px solid rgba(15,23,42,.07);
+  border-bottom: 1px solid rgba(215,228,242,.85);
 }
 
 .details-badge{
-  width: 44px;
-  height: 44px;
-  border-radius: 14px;
+  width: 46px;
+  height: 46px;
+  border-radius: 16px;
   display:flex;
   align-items:center;
   justify-content:center;
-  background: rgba(15, 23, 42, .04);
+  background: rgba(15,23,42,.04);
   font-size: 20px;
 }
 
 .details-h{
   font-weight: 900;
-  color:#0f172a;
+  color: var(--ink);
 }
 .details-meta{
   font-size: 12px;
-  color:#64748b;
+  color: rgba(91,107,132,.95);
   margin-top: 2px;
 }
 
+/* detail fields */
 .details-grid{
   margin-top: 12px;
   display:grid;
@@ -272,132 +321,34 @@
   gap: 10px;
 }
 
-/* Each detail field card */
-.detail-card {
-  background: #fff;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
+.detail-card{
+  background: rgba(255,255,255,.92);
+  border: 1px solid rgba(215,228,242,.95);
+  border-radius: 14px;
   padding: 12px 14px;
-
-  min-height: 70px;       
-  max-height: 70px;
-
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
+  box-shadow: 0 10px 24px rgba(15,23,42,.06);
+  overflow: hidden;
 }
 
 .detail-label{
   font-size: 11px;
-  color:#64748b;
+  color: rgba(91,107,132,.95);
   text-transform: uppercase;
   letter-spacing: .06em;
-  font-weight: 800;
+  font-weight: 900;
 }
 
-.detail-value {
-  font-size: 14px;
-  color: #0f172a;
-  line-height: 1.4;
-
-  overflow-y: auto;       
-  max-height: 36px;       
-  padding-right: 4px;
-}
-
-.detail-card.note {
-  min-height: 110px;
-  max-height: 110px;
-}
-
-.detail-card.note .detail-value {
-  max-height: 70px;
-}
-
-/* =========================================================
-   APPENDED (doesn't remove anything above) — layout lock
-   ========================================================= */
-
-/* Make both cards in the grid row stretch to same height */
-.reports-grid{
-  align-items: stretch; /* IMPORTANT: prevents row height jumping */
-}
-
-/* Lock the LEFT table card height too (so it doesn't stretch the row) */
-.reports-grid .reports-card:first-child{
-  height: 520px;              /* match right panel */
-  display: flex;
-  flex-direction: column;
-}
-
-/* Let table area scroll inside the left card */
-.reports-grid .reports-card:first-child .table-wrap{
-  flex: 1;
-  overflow: auto;
-}
-
-/* Lock the RIGHT details card height */
-.reports-details{
-  height: 520px;              /* fixed */
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;           /* prevents growth */
-}
-
-/* Details body scrolls (instead of resizing card) */
-#reportDetailsBody{
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px 14px;
-}
-
-/* Empty state also doesn't resize card */
-#reportDetailsEmpty{
-  margin: 12px 14px;
-}
-
-/* Fixed field cards: never grow */
-.detail-card{
-  overflow: hidden;           /* IMPORTANT */
-}
-
-/* Long text scrolls inside value, not expand card */
 .detail-value{
-  overflow-x: hidden;
+  margin-top: 4px;
+  font-size: 14px;
+  color: var(--ink);
+  line-height: 1.35;
+  overflow-y: auto;
+  max-height: 56px;
+  padding-right: 4px;
   word-break: break-word;
 }
 
-/* Note stays fixed too */
-.detail-card.note{
-  overflow: hidden;           /* IMPORTANT */
+.detail-card.note .detail-value{
+  max-height: 96px;
 }
-/* ===============================
-   Make cards slightly shorter
-   =============================== */
-
-/* Reduce overall card height */
-.reports-grid .reports-card {
-  height: 480px;        /* was ~520 */
-}
-
-/* Ensure both sides stay aligned */
-.reports-details {
-  height: 480px;        /* same as table card */
-}
-
-/* Let content scroll inside */
-.reports-grid .reports-card:first-child .table-wrap {
-  max-height: 100%;
-  overflow-y: auto;
-}
-
-#reportDetailsBody {
-  max-height: 100%;
-  overflow-y: auto;
-}
-
-/* Add breathing space from white container */
-.reports-grid {
-  margin-bottom: 24px;  /* white space under cards */
-}
-

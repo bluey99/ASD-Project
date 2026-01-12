@@ -1,180 +1,213 @@
-/* ============================
-   PANEL CENTERING
-=============================== */
-.panel {
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  padding-top: 20px;
-  padding-bottom: 40px;
-  overflow: auto;
-}
+/* ../CSS/tasks.css */
 
-/* ============================
-   CONTENT WRAPPERS
-=============================== */
-.tasks-container,
-.add-task-container {
-  width: 70%;
-  max-width: 900px;
-  min-width: 300px;
-  margin: 0 auto;
-}
-
-/* ============================
-   TITLES CENTERED
-=============================== */
-.tasks-container h2,
-.add-task-container h2 {
-  text-align: center;
-  font-size: 28px;
-  font-weight: 700;
-  margin-bottom: 16px;
-  color: #0f172a;
-}
-
-/* ============================
-   FILTER BAR
-=============================== */
-.filter-bar {
-  display: flex;
-  justify-content: flex-start;
-  margin-bottom: 10px;
-  position: relative;
-}
-
-.filter-btn {
-  background: #e2e8f0;
-  border: 1px solid #cbd5e1;
-  padding: 6px 12px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-}
-
-.filter-btn:hover {
-  background: #cbd5e1;
-}
-
-/* Filter dropdown */
-.filter-menu {
-  position: absolute;
-  top: 36px;
-  left: 0;   /* aligns with DATE column */
-  background: white;
-  border: 1px solid #cbd5e1;
-  padding: 6px 0;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-  width: 180px;
-  z-index: 100;
-  display: none;
-}
-
-.filter-menu.show {
-  display: block;
-}
-
-.filter-menu button {
+/* Page */
+.tk-page{
+  padding: 18px;
   width: 100%;
-  padding: 8px 14px;
-  background: none;
+  height: 100%;
+  display:flex;
+  flex-direction:column;
+  gap: 14px;
+}
+
+/* Header */
+.tk-header{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap: 14px;
+}
+
+.tk-title{
+  margin:0;
+  font-size: 20px;
+  font-weight: 800;
+  color:#0f172a;
+}
+
+.tk-subtitle{
+  margin:4px 0 0 0;
+  font-size: 13px;
+  color:#64748b;
+}
+
+.tk-actions{
+  display:flex;
+  gap:10px;
+  align-items:center;
+}
+
+/* Buttons (match feedback/reports vibe) */
+.btn-lite{
+  border: 1px solid rgba(15, 23, 42, .12);
+  background:#ffffff;
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 13px;
+  color:#0f172a;
+  cursor:pointer;
+  transition: .12s ease;
+}
+.btn-lite:hover{ background: rgba(2,132,199,.06); }
+
+.btn-primary{
   border: none;
-  text-align: left;
-  cursor: pointer;
+  background: linear-gradient(135deg, #0f3d5e, #2a6f97);
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-weight: 800;
+  font-size: 13px;
+  color:#fff;
+  cursor:pointer;
+  transition: .12s ease;
+  box-shadow: 0 10px 22px rgba(15,61,94,.18);
+}
+.btn-primary:hover{
+  transform: translateY(-1px);
+  box-shadow: 0 14px 26px rgba(15,61,94,.22);
 }
 
-.filter-menu button:hover {
-  background: #f1f5f9;
+/* Filters row */
+.tk-filters{
+  display:flex;
+  gap: 14px;
+  align-items:end;
+  flex-wrap: wrap;
 }
 
-/* ============================
-   TASKS TABLE
-=============================== */
-.tasks-table {
-  width: 100%;
+.tk-field{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+
+.tk-label{
+  font-size: 12px;
+  color:#475569;
+  font-weight:700;
+}
+
+.tk-select, .tk-input, .tk-textarea{
+  border: 1px solid rgba(15, 23, 42, .14);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 14px;
+  color:#0f172a;
+  background:#fff;
+  outline:none;
+}
+.tk-select:focus, .tk-input:focus, .tk-textarea:focus{
+  border-color: rgba(59,130,246,.55);
+  box-shadow: 0 0 0 3px rgba(59,130,246,.12);
+}
+
+/* Card */
+.tk-card{
+  background:#ffffff;
+  border: 1px solid rgba(15, 23, 42, .08);
+  border-radius: 14px;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+/* Table */
+.tk-table-wrap{
+  overflow:auto;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.tk-table{
+  width:100%;
   border-collapse: collapse;
+  font-size: 13px;
+  min-width: 900px;
 }
 
-.tasks-table th,
-.tasks-table td {
-  padding: 12px 10px;
-  border-bottom: 1px solid #e2e8f0;
-  text-align: left;
-  font-size: 15px;
-  color: #0f172a;
-}
-
-.tasks-table th {
-  font-weight: 700;
+.tk-table thead th{
   text-transform: lowercase;
+  letter-spacing: .02em;
+  font-size: 12px;
+  color:#475569;
+  font-weight: 800;
+  text-align:left;
+  padding: 10px 14px;
+  background:#ffffff;
+  border-bottom: 1px solid rgba(15, 23, 42, .06);
 }
 
-/* Status dots */
-.status-dot {
+.tk-table tbody td{
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(15, 23, 42, .06);
+  color:#0f172a;
+  vertical-align: top;
+}
+
+.tk-table tbody tr:hover{
+  background: rgba(15, 23, 42, .02);
+}
+
+.tk-empty{
+  text-align:center;
+  color:#64748b;
+  padding: 26px 14px !important;
+}
+
+/* Status dot */
+.status-dot{
   height: 10px;
   width: 10px;
   border-radius: 50%;
   display: inline-block;
   margin-right: 6px;
 }
+.status-pending{ background:#fbbf24; }
+.status-done{ background:#4ade80; }
 
-.status-pending { background: #fbbf24; } /* Yellow */
-.status-done { background: #4ade80; }    /* Green */
-
-/* ============================
-   ADD TASK FORM
-=============================== */
-.add-task-form {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  width: 100%;
+/* Actions col */
+.tk-actions-cell a{
+  color:#2563eb;
+  text-decoration: underline;
+  font-weight:700;
+  cursor:pointer;
 }
 
-.add-task-form input,
-.add-task-form textarea {
-  width: 100%;
-  padding: 10px;
-  border: 1px solid #d0d5dd;
-  border-radius: 8px;
-  font-size: 15px;
+/* Form card content */
+.tk-form{
+  padding: 16px;
 }
 
-.add-task-form textarea {
-  min-height: 120px;
-  resize: vertical;
+.tk-form-title{
+  margin: 0 0 12px 0;
+  font-size: 18px;
+  font-weight: 900;
+  color:#0f172a;
 }
 
-.add-task-form button {
-  width: 140px;
-  padding: 10px;
-  border: none;
-  background: #dbeafe;
-  color: #1e3a8a;
-  font-size: 15px;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: 0.2s ease-in-out;
+.tk-form-grid{
+  display:flex;
+  flex-direction:column;
+  gap: 12px;
 }
 
-.add-task-form button:hover {
-  background: #bfdbfe;
+.tk-row{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
 }
 
-/* Feedback actions column buttons */
-.feedback-actions button {
-  background: #e2e8f0;
-  border: 1px solid #cbd5e1;
-  padding: 4px 10px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 13px;
-  margin-right: 6px;
+@media (max-width: 720px){
+  .tk-row{ grid-template-columns: 1fr; }
 }
 
-.feedback-actions button:hover {
-  background: #cbd5e1;
+.tk-buttons{
+  display:flex;
+  gap: 10px;
+  margin-top: 4px;
 }
 
-
+.hidden{ display:none !important; }

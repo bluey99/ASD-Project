@@ -6,16 +6,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>moodi – Patient</title>
 
-  <!-- Global CSS first, then page CSS -->
+  <!-- Theme FIRST -->
+  <link rel="stylesheet" href="../CSS/theme.css" />
   <link rel="stylesheet" href="../CSS/mainStyle.css" />
+
+  <!-- Page CSS -->
   <link rel="stylesheet" href="../CSS/PD.css" />
-  <link rel="stylesheet" href="../CSS/tasks.css" />
   <link rel="stylesheet" href="../CSS/dropdown.css" />
-  <link rel="stylesheet" href="../CSS/overview.css">
-  <link rel="stylesheet" href="../CSS/reports.css">
-  <link rel="stylesheet" href="../CSS/feedback.css">
 
-
+  <!-- Section CSS (these can stay) -->
+<link rel="stylesheet" href="../CSS/tasks.css?v=2" />
+  <link rel="stylesheet" href="../CSS/overview.css" />
+  <link rel="stylesheet" href="../CSS/reports.css" />
+  <link rel="stylesheet" href="../CSS/feedback.css" />
 </head>
 
 <body>
@@ -23,7 +26,8 @@
   <header class="topbar">
     <div class="topbar-inner container">
       <a href="index.html" class="brand" aria-label="Moodi home">
-        <span>moodi</span>
+        <span class="brand-icon">m</span>
+        <span class="brand-text">moodi</span>
       </a>
 
       <div class="actions">
@@ -50,46 +54,23 @@
     </div>
   </header>
 
-  <!-- ===== Patient name band ===== 
-  <section class="pdash-hero" aria-labelledby="patientName">
-    <div class="container">
-      <h1 id="patientName">Patient</h1>
-    </div>
-  </section>-->
-
   <!-- ===== Main content ===== -->
-  <main class="pdash-main">
-    <div class="container pdash-inner">
+  <main class="page pd-page">
+    <div class="pd-shell">
 
-      <!------------------ Tabs --------------------->
+
+
+      <!-- Tabs -->
       <nav class="tabs" role="tablist" aria-label="Patient sections">
-        
         <button class="tab active" role="tab" data-tab="overview">overview</button>
 
-        <!-- TASKS dropdown -->
-        <div class="tab-dropdown">
-          <button class="tab" role="tab" data-tab="tasks">
-            tasks ▾
-          </button>
-          <div class="dropdown-menu">
-            <button data-action="viewTasks">View tasks</button>
-            <button data-action="addTask">Add a task</button>
-          </div>
-        </div>
+        <!-- TASKS  -->
+        <button class="tab" data-tab="tasks">tasks</button>
+
 
         <button class="tab" role="tab" data-tab="reports">reports</button>
 
-        <!-- FEEDBACKS dropdown -->
-        <div class="tab-dropdown">
-          <button class="tab" role="tab" data-tab="feedbacks">
-            feedbacks ▾
-          </button>
-          <div class="dropdown-menu">
-            <button data-action="viewFeedbacks">View feedbacks</button>
-            <button data-action="addFeedback">Add feedback</button>
-          </div>
-        </div>
-      </nav>
+        <button class="tab" role="tab" data-tab="feedbacks">feedbacks</button>
 
       <!-- Content panel -->
       <section id="panel" class="panel" aria-live="polite">overview</section>
@@ -97,30 +78,8 @@
     </div>
   </main>
 
-  <!-- Page JS 
-  <script src="../JS/PD.js" defer></script>
-
-   tasks 
-  <script src="../JS/tasksData.js"></script>
-  <script src="../JS/tasks.js"></script>
-
-   feedbacks 
-  <script src="../JS/feedbackData.js"></script>
-  <script src="../JS/feedback.js"></script>
-
-  <script src="../JS/dropdown.js"></script>
-  <script type="module" src="../JS/firebase.js"></script>
-    <script type="module" src="../JS/index.js"></script>-->
-
-    <!-- dropdown + main PD logic -->
+  <script src="../JS/authGuard.js" defer></script>
   <script src="../JS/dropdown.js" defer></script>
   <script src="../JS/PD.js" defer></script>
-
-  <!-- ✅ tasks from Firebase -->
-  <script type="module" src="../JS/tasks.js"></script>
-
-  
-
 </body>
 </html>
-

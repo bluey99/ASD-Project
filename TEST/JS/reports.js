@@ -1,8 +1,10 @@
 // ../JS/reports.js
-// Reports = ONLY regular child emotion logs from children/{childDocId}/history
-// Rule:
-// - if historyDoc.id field == null  => regular emotion log => SHOW in Reports
-// - if historyDoc.id field != null  => task emotion log     => DO NOT show in Reports
+// Reports page shows:
+// 1) Regular child emotion logs from children/{childDocId}/history
+//    - Rule: if historyDoc.id == null => SHOW in Reports
+//    - if historyDoc.id != null       => task emotion log => DO NOT show in Reports
+// 2) Parent reports from top-level collection "reports"
+//    - matched by reports.childID == children/{childDocId}.childID (the numeric childID field)
 
 import { db } from "./firebase.js";
 import {
@@ -11,6 +13,7 @@ import {
   getDoc,
   getDocs,
   query,
+  where,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 function $(id) {
@@ -29,7 +32,7 @@ function getActiveChildId() {
 
 function toDate(tsLike) {
   if (!tsLike) return null;
-  if (typeof tsLike?.toDate === "function") return tsLike.toDate();
+  if (typeof tsLike?.toDate === "function") return tsLike.toDate(); // Firestore Timestamp
   if (tsLike instanceof Date) return tsLike;
   const d = new Date(tsLike);
   return isNaN(d.getTime()) ? null : d;
@@ -85,16 +88,26 @@ function detailCard(label, value) {
   `;
 }
 
-async function fetchPatientName(childDocId) {
+async function fetchChildDoc(childDocId) {
   try {
     const snap = await getDoc(doc(db, "children", childDocId));
-    if (!snap.exists()) return "Patient";
-    const data = snap.data();
-    return data?.name || data?.username || "Patient";
+    if (!snap.exists()) return null;
+    return snap.data();
   } catch (e) {
-    console.error("fetchPatientName error:", e);
-    return "Patient";
+    console.error("fetchChildDoc error:", e);
+    return null;
   }
+}
+
+async function fetchPatientName(childDocId) {
+  const data = await fetchChildDoc(childDocId);
+  return data?.name || data?.username || "Patient";
+}
+
+async function fetchPatientNumericId(childDocId) {
+  const data = await fetchChildDoc(childDocId);
+  // your field in Firestore is "childID"
+  return data?.childID || data?.childId || null;
 }
 
 // --------- FETCH HISTORY (child logs) ----------
@@ -109,10 +122,9 @@ async function fetchHistoryRows(childDocId, patientName) {
     snap.forEach((d) => {
       const data = d.data();
 
-      // ✅ FILTER: task emotion log should not appear in Reports
-      // If field "id" is not null => it's for a task
+      // ✅ FILTER: task emotion logs should not appear in Reports
       if (data?.id !== null && data?.id !== undefined && data?.id !== "") {
-        return; // skip
+        return;
       }
 
       rows.push({
@@ -121,10 +133,7 @@ async function fetchHistoryRows(childDocId, patientName) {
         emoji: feelingToEmoji(data.feeling),
         dateObj: toDate(data.timestamp),
         dateText: formatDateTime(data.timestamp),
-
-        // ✅ assigned by should be child (patient)
         assignedBy: patientName,
-
         detailsTitle: "Child emotion log",
         details: {
           Emotion: data.feeling,
@@ -140,6 +149,52 @@ async function fetchHistoryRows(childDocId, patientName) {
     return rows;
   } catch (e) {
     console.error("fetchHistoryRows error:", e);
+    return [];
+  }
+}
+
+// --------- FETCH PARENT REPORTS (reports collection) ----------
+// Match reports.childID (numeric string) == childNumericId
+async function fetchParentReportRows(childNumericId) {
+  try {
+    if (!childNumericId) return [];
+
+    const qRep = query(collection(db, "reports"), where("childID", "==", childNumericId));
+    const snap = await getDocs(qRep);
+
+    const rows = [];
+    snap.forEach((d) => {
+      const data = d.data();
+
+      // reports.timestamp in your screenshot is a string: "29/01/2026 13:40"
+      // we will parse it via new Date() fallback; also accept Firestore Timestamp.
+      const ts = data.timestamp || data.dateAndTime;
+
+      rows.push({
+        id: d.id,
+        source: "parent",
+        emoji: feelingToEmoji(data.childReaction),
+        dateObj: toDate(ts),
+        dateText: formatDateTime(ts),
+        assignedBy: "Parent",
+        detailsTitle: "Parent report",
+        details: {
+          "Child name": data.childName,
+          "Child reaction": data.childReaction,
+          Situation: data.situation,
+          Where: data.location,
+          When: formatDateTime(ts),
+          "How handled": data.howHandled,
+          Questions: data.questions,
+          "Parent ID": data.parentID,
+          "Therapist ID": data.therapistId,
+        },
+      });
+    });
+
+    return rows;
+  } catch (e) {
+    console.error("fetchParentReportRows error:", e);
     return [];
   }
 }
@@ -215,6 +270,7 @@ export async function initReports() {
     return;
   }
 
+  // child display name for "assigned by" in child logs
   const patientName = await fetchPatientName(childDocId);
   if (pill) pill.textContent = patientName;
 
@@ -222,9 +278,15 @@ export async function initReports() {
     tbody.innerHTML = `<tr><td colspan="4" class="reports-empty">Loading reports…</td></tr>`;
   }
 
-  const historyRows = await fetchHistoryRows(childDocId, patientName);
+  // numeric childID field for matching parent reports collection
+  const childNumericId = await fetchPatientNumericId(childDocId);
 
-  const all = historyRows
+  const [historyRows, parentRows] = await Promise.all([
+    fetchHistoryRows(childDocId, patientName),
+    fetchParentReportRows(childNumericId),
+  ]);
+
+  const all = [...historyRows, ...parentRows]
     .filter((r) => r.dateObj instanceof Date && !isNaN(r.dateObj.getTime()))
     .sort((a, b) => b.dateObj - a.dateObj);
 

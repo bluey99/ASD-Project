@@ -91,6 +91,91 @@
       </div>
     </section>
 
+
+
+  </div>
+
+    <!-- ML overview -->
+  <div class="ov-ml-grid">
+
+    <!-- Trend + risk -->
+    <section class="ov-card ov-ml-card">
+  <div class="ov-card-head">
+    <h3>Emotion over time</h3>
+
+    <div class="ov-badges">
+      <span class="ov-badge" id="ovTrendBadge">Trend: —</span>
+
+      <span class="ov-badge ov-badge-risk" id="ovRiskBadge">
+        Risk: —
+        <button class="ov-info" type="button" aria-label="Risk info" data-pop="riskPop">i</button>
+      </span>
+    </div>
+  </div>
+
+  <div class="ov-ml-sub" id="ovTrendSubtitle">Analyzing recent emotion logs…</div>
+
+  <div class="ov-chart-wrap">
+    <canvas id="trendChart" height="110"></canvas>
+  </div>
+
+  <div class="ov-ml-foot" id="ovTrendFoot">—</div>
+
+  <!-- Risk explanation popup -->
+  <div class="ov-pop" id="riskPop" role="dialog" aria-hidden="true">
+    <div class="ov-pop-title">What does “Risk” mean?</div>
+    <div class="ov-pop-text">
+      Risk is an estimate of how likely the child is to experience <b>emotional overload soon</b>,
+      based on <b>recent intensity</b>, <b>how often high-intensity logs occur</b>, and the <b>trend direction</b>.
+    </div>
+
+    <div class="ov-pop-list">
+      <div><b>Low</b>: emotions are stable or improving, and high-intensity events are rare.</div>
+      <div><b>Medium</b>: emotions show some escalation or repeated stress episodes.</div>
+      <div><b>High</b>: strong upward trend or frequent high-intensity events → therapist attention recommended.</div>
+    </div>
+
+    <button class="btn-light ov-pop-close" type="button" data-close="riskPop">Close</button>
+  </div>
+</section>
+
+
+    <!-- Trigger detection -->
+    <section class="ov-card ov-ml-card">
+  <div class="ov-card-head">
+    <h3>Common stress triggers</h3>
+    <div class="ov-badges">
+      <span class="ov-badge" id="ovTriggerWindow">Window: 30 days</span>
+      <span class="ov-badge">
+        What it shows
+        <button class="ov-info" type="button" aria-label="Trigger info" data-pop="trigPop">i</button>
+      </span>
+    </div>
+  </div>
+
+  <div class="ov-ml-sub" id="ovTriggerSubtitle">Detecting themes and grouping places…</div>
+
+  <div class="ov-chart-wrap">
+    <canvas id="triggerChart" height="110"></canvas>
+  </div>
+
+  <!-- NEW: categories with which places belong to each category -->
+  <div class="ov-ml-foot" id="ovTriggerInsight">—</div>
+  <div class="ov-catbox" id="ovLocationCategories"></div>
+
+  <div class="ov-mini-table" id="ovTriggerTable"></div>
+
+  <!-- Trigger explanation popup -->
+  <div class="ov-pop" id="trigPop" role="dialog" aria-hidden="true">
+    <div class="ov-pop-title">What does this chart show?</div>
+    <div class="ov-pop-text">
+      Each bar shows how many emotion logs match a <b>trigger theme</b> (like uncertainty, sensory overload, etc.)
+      using the child’s <b>note + situation + location</b>. This helps identify recurring triggers.
+    </div>
+    <button class="btn-light ov-pop-close" type="button" data-close="trigPop">Close</button>
+  </div>
+</section>
+
   </div>
 
   

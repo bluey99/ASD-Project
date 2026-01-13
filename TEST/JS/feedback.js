@@ -1,6 +1,7 @@
 // ../JS/feedback.js
 // Firestore CRUD for collection: "feedbacks"
 // fields: childID, parentID, therapistID, date(YYYY-MM-DD), time(HH:MM), title, description
+// + after adding feedback -> add notification to "notifications" for the parent
 // + disables browser "field history" (autocomplete)
 
 import { db } from "./firebase.js";
@@ -57,6 +58,20 @@ async function getParentIdForChild(childId) {
   }
 }
 
+// ✅ NEW: get child name from /children/{childId}
+async function getChildName(childId) {
+  if (!childId) return "Child";
+  try {
+    const snap = await getDoc(doc(db, "children", childId));
+    if (!snap.exists()) return "Child";
+    const data = snap.data() || {};
+    return data.name || data.username || data.childName || "Child";
+  } catch (err) {
+    console.error("Failed to read child name:", err);
+    return "Child";
+  }
+}
+
 function combineKey(dateStr, timeStr) {
   return `${dateStr || ""} ${timeStr || ""}`.trim();
 }
@@ -78,7 +93,6 @@ function disableFieldHistory() {
   const time = $("fbTime");
   const desc = $("fbDesc");
 
-  // browsers remember by "name", so give unique names too
   if (title) {
     title.setAttribute("autocomplete", "off");
     title.setAttribute("autocapitalize", "off");
@@ -185,7 +199,6 @@ function showForm(editFb = null) {
   $("fbFormView")?.classList.remove("hidden");
   document.querySelector(".fb-filters")?.classList.add("hidden");
 
-  // ✅ apply no-history settings whenever form is shown
   disableFieldHistory();
 
   const formTitle = $("fbFormTitle");
@@ -239,6 +252,21 @@ async function addFeedback(data) {
     date: data.date,
     time: data.time,
     description: data.description,
+    createdAt: serverTimestamp(),
+  });
+}
+
+// ✅ NEW: create notification in "notifications" for parent
+async function addParentNotification({ parentID, childName }) {
+  if (!parentID) return;
+
+  const msg = `${childName} therapist added a feedback`;
+
+  await addDoc(collection(db, "notifications"), {
+    message: msg,
+    read: false,
+    receiverId: parentID,
+    receiverType: "PARENT",
     createdAt: serverTimestamp(),
   });
 }
@@ -326,6 +354,11 @@ function bindUIOnce() {
       description,
     });
 
+    // ✅ send notification to parent
+    const childName = await getChildName(childId);
+    await addParentNotification({ parentID, childName });
+
+    alert("Feedback added ✅");
     showList();
     await loadAndRender();
   });
@@ -335,9 +368,7 @@ function bindUIOnce() {
 export async function initFeedbacks(mode = "view") {
   isBound = false;
 
-  // ensure form has no-history settings even if user opens form later
   disableFieldHistory();
-
   bindUIOnce();
   await loadAndRender();
 

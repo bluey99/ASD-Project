@@ -211,3 +211,8 @@
 }
 
 .hidden{ display:none !important; }
+
+/* make "assigned by" column wider + prevent wrapping */
+.tk-col-assigned { width: 120px; }
+.tk-assigned-cell { white-space: nowrap; }
+

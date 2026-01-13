@@ -1,15 +1,18 @@
-// ../JS/tasks.js (MODULE) — Tasks (view + add) — saves childID field (NOT doc id)
+// ../JS/tasks.js — Tasks (view + add)
+// ✅ Saves to Firestore "tasks" collection FIRST, then reloads and renders table.
+// ✅ Matches your Firestore fields:
+// childId (numeric string), creatorId, creatorType, taskName, discussionPrompts, displayWhen, status, createdAt
 
 import { db } from "./firebase.js";
 import {
   collection,
   addDoc,
   getDocs,
-  getDoc,
   query,
   where,
-  serverTimestamp,
   doc,
+  getDoc,
+  serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const $ = (id) => document.getElementById(id);
@@ -18,17 +21,9 @@ function getParam(name) {
   return new URLSearchParams(window.location.search).get(name);
 }
 
-/**
- * Your app sometimes passes the CHILD DOC ID in the URL/localStorage.
- * But you want to store/query tasks by the child's "childID" FIELD (e.g. "214578903").
- */
-function getActiveChildRef() {
-  // could be docId OR could already be the real childID
+function getActiveChildDocId() {
+  // child document id (used to read children/{docId})
   return getParam("childId") || localStorage.getItem("selectedChildId") || null;
-}
-
-function getActiveParentId() {
-  return getParam("parentId") || "parent1";
 }
 
 function getTherapistId() {
@@ -45,64 +40,94 @@ function getTherapistId() {
   return null;
 }
 
+// ✅ read numeric childID from children/{childDocId}
+async function getChildNumericId(childDocId) {
+  if (!childDocId) return null;
+  try {
+    const snap = await getDoc(doc(db, "children", childDocId));
+    if (!snap.exists()) return null;
+    const data = snap.data() || {};
+    // your field is usually childID: "214578903"
+    return data.childID || data.childId || null;
+  } catch (e) {
+    console.error("getChildNumericId error:", e);
+    return null;
+  }
+}
+
 /* ---------- state ---------- */
 let tasksRows = [];
 let isBound = false;
-let resolvedChildID = null; // THIS is the value we will store in tasks.childId
 
 function getRoot() {
   return document.getElementById("tasksRoot") || document.getElementById("panel");
 }
 
-function parseTaskDate(dateStr) {
-  if (!dateStr) return new Date(0);
-  if (dateStr.includes("-")) return new Date(dateStr); // yyyy-mm-dd
-  const parts = dateStr.split("/");
-  if (parts.length === 3) {
-    const [day, month, year] = parts.map(Number);
-    return new Date(year, month - 1, day);
+function parseTaskDate(displayWhen) {
+  if (!displayWhen) return new Date(0);
+  const s = String(displayWhen).trim();
+
+  // yyyy-mm-dd
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return new Date(s);
+
+  // dd/mm/yyyy or d/m/yyyy with optional time "h:mmAM/PM"
+  const m = s.match(
+    /^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}):(\d{2})\s*(AM|PM))?$/i
+  );
+  if (m) {
+    const day = Number(m[1]);
+    const month = Number(m[2]);
+    const year = Number(m[3]);
+    let hour = m[4] ? Number(m[4]) : 0;
+    const minute = m[5] ? Number(m[5]) : 0;
+    const ap = m[6] ? String(m[6]).toUpperCase() : null;
+
+    if (ap) {
+      if (ap === "PM" && hour < 12) hour += 12;
+      if (ap === "AM" && hour === 12) hour = 0;
+    }
+
+    const d = new Date(year, month - 1, day, hour, minute);
+    return isNaN(d.getTime()) ? new Date(0) : d;
   }
-  return new Date(dateStr);
+
+  const d = new Date(s);
+  return isNaN(d.getTime()) ? new Date(0) : d;
 }
 
-/**
- * Resolve what to use as the "childId" inside tasks.
- * - If the given value is already digits => treat it as the real childID
- * - Otherwise treat it as Firestore document id and read children/{docId}.childID
- */
-async function resolveChildID() {
-  const ref = getActiveChildRef();
-  if (!ref) return null;
-
-  // already looks like "214578903"
-  if (/^\d+$/.test(ref)) return ref;
-
-  // otherwise assume it's the child DOCUMENT ID
-  const snap = await getDoc(doc(db, "children", ref));
-  if (!snap.exists()) return null;
-
-  const data = snap.data();
-  // your screenshot shows field name is exactly "childID"
-  return data?.childID || data?.childId || null;
+// display only
+function normalizeStatusForUI(status) {
+  const s = String(status || "").trim().toUpperCase();
+  if (s === "ASSIGNED") return "pending";
+  if (!s) return "pending";
+  return String(status).toLowerCase();
 }
 
-async function fetchTasks(childIDValue) {
-  const q = query(collection(db, "tasks"), where("childId", "==", childIDValue));
+function normalizeAssignedByForUI(creatorType) {
+  const t = String(creatorType || "").trim().toUpperCase();
+  if (t === "THERAPIST") return "therapist";
+  return "me";
+}
+
+async function fetchTasks(childNumericId) {
+  const q = query(collection(db, "tasks"), where("childId", "==", childNumericId));
   const snap = await getDocs(q);
 
   const rows = [];
   snap.forEach((docSnap) => {
-    const d = docSnap.data();
+    const d = docSnap.data() || {};
+
+    const displayWhen = d.displayWhen || "";
     rows.push({
       id: docSnap.id,
-      date: d.displayWhen || "",
+      date: displayWhen,
       title: d.taskName || "",
-      assignedBy: d.assignedBy || "therapist",
-      status: d.status || "pending",
+      assignedBy: normalizeAssignedByForUI(d.creatorType),
+      status: normalizeStatusForUI(d.status),
       mood: d.mood || "--",
       intensity: d.intensity || "--",
       note: d.discussionPrompts || "",
-      _dateObj: parseTaskDate(d.displayWhen || ""),
+      _dateObj: parseTaskDate(displayWhen),
     });
   });
 
@@ -146,7 +171,6 @@ function renderShell() {
         </div>
       </div>
 
-      <!-- LIST -->
       <div id="tkListView" class="tk-card">
         <div class="tk-table-wrap">
           <table class="tk-table">
@@ -154,7 +178,7 @@ function renderShell() {
               <tr>
                 <th>date</th>
                 <th>title</th>
-                <th>assigned by</th>
+                <th class="tk-col-assigned">assigned by</th>
                 <th>status</th>
                 <th>mood</th>
                 <th>intensity</th>
@@ -168,59 +192,31 @@ function renderShell() {
         </div>
       </div>
 
-      <!-- FORM -->
       <div id="tkFormView" class="tk-card tk-form hidden">
         <h3 class="tk-form-title">Add a task</h3>
 
         <form id="tkForm" class="tk-form-grid" autocomplete="off">
           <div class="tk-field">
             <label class="tk-label">title</label>
-            <input
-              id="tkTitle"
-              class="tk-input"
-              type="text"
-              placeholder="e.g., breathing exercise"
-              required
-              autocomplete="off"
-              autocapitalize="off"
-              autocorrect="off"
-              spellcheck="false"
-              name="tkTitle_nohistory"
-            />
+            <input id="tkTitle" class="tk-input" type="text" required autocomplete="off"
+              autocapitalize="off" autocorrect="off" spellcheck="false" name="tkTitle_nohistory" />
           </div>
 
           <div class="tk-row">
             <div class="tk-field">
               <label class="tk-label">date</label>
-              <input
-                id="tkDate"
-                class="tk-input"
-                type="date"
-                required
-                autocomplete="off"
-                name="tkDate_nohistory"
-              />
+              <input id="tkDate" class="tk-input" type="date" required autocomplete="off" name="tkDate_nohistory" />
             </div>
           </div>
 
           <div class="tk-field">
             <label class="tk-label">description</label>
-            <textarea
-              id="tkDesc"
-              class="tk-textarea"
-              rows="6"
-              placeholder="Write what the child should do..."
-              required
-              autocomplete="off"
-              autocapitalize="off"
-              autocorrect="off"
-              spellcheck="false"
-              name="tkDesc_nohistory"
-            ></textarea>
+            <textarea id="tkDesc" class="tk-textarea" rows="6" required autocomplete="off"
+              autocapitalize="off" autocorrect="off" spellcheck="false" name="tkDesc_nohistory"></textarea>
           </div>
 
           <div class="tk-buttons">
-            <button class="btn-primary" type="submit">Save</button>
+            <button class="btn-primary" id="tkSaveBtn" type="submit">Save</button>
             <button class="btn-lite" id="tkCancelBtn" type="button">Cancel</button>
           </div>
         </form>
@@ -229,22 +225,18 @@ function renderShell() {
   `;
 }
 
-/* ---------- render table ---------- */
 function renderTable() {
   const tbody = $("tkTbody");
   const subtitle = $("tkSubtitle");
   const sortSel = $("tkSort");
   const statusSel = $("tkStatus");
-
   if (!tbody) return;
 
   let list = [...tasksRows];
 
-  // filter
   const status = statusSel?.value || "";
   if (status) list = list.filter((t) => (t.status || "").toLowerCase() === status);
 
-  // sort
   const dir = sortSel?.value || "desc";
   list.sort((a, b) => (dir === "asc" ? a._dateObj - b._dateObj : b._dateObj - a._dateObj));
 
@@ -262,7 +254,7 @@ function renderTable() {
         <tr>
           <td>${t.date || "—"}</td>
           <td>${t.title || "—"}</td>
-          <td>${t.assignedBy || "—"}</td>
+          <td class="tk-assigned-cell">${t.assignedBy || "—"}</td>
           <td><span class="status-dot ${dotClass}"></span>${t.status || "—"}</td>
           <td>${t.mood || "—"}</td>
           <td>${t.intensity || "—"}</td>
@@ -273,7 +265,6 @@ function renderTable() {
     .join("");
 }
 
-/* ---------- view switching ---------- */
 function showList() {
   $("tkListView")?.classList.remove("hidden");
   $("tkFormView")?.classList.add("hidden");
@@ -287,22 +278,26 @@ function showForm() {
   $("tkForm")?.reset();
 }
 
-/* ---------- load + bind ---------- */
 async function loadAndRender() {
+  const childDocId = getActiveChildDocId();
   const subtitle = $("tkSubtitle");
   const tbody = $("tkTbody");
 
-  // resolve once per load
-  resolvedChildID = await resolveChildID();
-
-  if (!resolvedChildID) {
-    if (subtitle) subtitle.textContent = "Missing/invalid childId (could not resolve childID).";
+  if (!childDocId) {
+    if (subtitle) subtitle.textContent = "Missing childId. Open patient using ?childId=...";
     if (tbody) tbody.innerHTML = `<tr><td colspan="7" class="tk-empty">Missing childId.</td></tr>`;
     return;
   }
 
+  const childNumericId = await getChildNumericId(childDocId);
+  if (!childNumericId) {
+    if (subtitle) subtitle.textContent = "Missing numeric childID in children document.";
+    if (tbody) tbody.innerHTML = `<tr><td colspan="7" class="tk-empty">Missing numeric childID.</td></tr>`;
+    return;
+  }
+
   if (subtitle) subtitle.textContent = "Loading…";
-  tasksRows = await fetchTasks(resolvedChildID);
+  tasksRows = await fetchTasks(childNumericId);
   renderTable();
 }
 
@@ -312,68 +307,73 @@ function bindUIOnce() {
 
   $("tkAddBtn")?.addEventListener("click", showForm);
   $("tkCancelBtn")?.addEventListener("click", showList);
-
   $("tkSort")?.addEventListener("change", renderTable);
   $("tkStatus")?.addEventListener("change", renderTable);
 
   $("tkForm")?.addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    const parentId = getActiveParentId();
-    const therapistId = getTherapistId();
+    const saveBtn = $("tkSaveBtn");
+    if (saveBtn) saveBtn.disabled = true;
 
-    // make sure resolvedChildID exists
-    if (!resolvedChildID) resolvedChildID = await resolveChildID();
+    try {
+      const childDocId = getActiveChildDocId();
+      const therapistId = getTherapistId();
 
-    if (!therapistId) {
-      alert("You must be logged in as a therapist.");
-      window.location.href = "login.html";
-      return;
+      if (!therapistId) {
+        alert("You must be logged in as a therapist.");
+        window.location.href = "login.html";
+        return;
+      }
+
+      const childNumericId = await getChildNumericId(childDocId);
+      if (!childNumericId) {
+        alert("Missing numeric childID in children document.");
+        return;
+      }
+
+      const title = $("tkTitle")?.value.trim();
+      const rawDate = $("tkDate")?.value; // yyyy-mm-dd
+      const desc = $("tkDesc")?.value.trim();
+
+      if (!title || !rawDate || !desc) {
+        alert("Please fill in all fields.");
+        return;
+      }
+
+      const [y, m, d] = rawDate.split("-");
+      const displayWhen = `${Number(d)}/${Number(m)}/${y}`;
+
+      // ✅ IMPORTANT: write to Firestore first
+      const docRef = await addDoc(collection(db, "tasks"), {
+        childId: childNumericId,
+        creatorId: therapistId,
+        creatorType: "THERAPIST",
+        discussionPrompts: desc,
+        displayWhen,
+        status: "ASSIGNED",
+        taskName: title,
+        createdAt: serverTimestamp(),
+      });
+
+      console.log("✅ Task saved to Firestore with id:", docRef.id);
+
+      alert("Task added ✅");
+      showList();
+
+      // ✅ then read from Firestore and render
+      await loadAndRender();
+    } catch (err) {
+      console.error("❌ add task failed:", err);
+      alert(`Task NOT saved to Firestore.\n\nError: ${err?.message || err}`);
+    } finally {
+      if (saveBtn) saveBtn.disabled = false;
     }
-
-    if (!resolvedChildID) {
-      alert("Could not resolve the child's childID.");
-      return;
-    }
-
-    const title = $("tkTitle")?.value.trim();
-    const rawDate = $("tkDate")?.value; // yyyy-mm-dd
-    const desc = $("tkDesc")?.value.trim();
-
-    if (!title || !rawDate || !desc) {
-      alert("Please fill in all fields.");
-      return;
-    }
-
-    // yyyy-mm-dd -> dd/mm/yyyy
-    const [y, m, d] = rawDate.split("-");
-    const displayWhen = `${Number(d)}/${Number(m)}/${y}`;
-
-    await addDoc(collection(db, "tasks"), {
-      // ✅ this is now the child's "childID" field (e.g., "214578903")
-      childId: resolvedChildID,
-
-      parentId,
-      therapistID: therapistId,
-      createdAt: serverTimestamp(),
-      taskName: title,
-      displayWhen,
-      discussionPrompts: desc,
-      assignedBy: "therapist",
-      status: "pending",
-      mood: "--",
-      intensity: "--",
-    });
-
-    alert("Task added ✅");
-    showList();
-    await loadAndRender();
   });
 }
 
-/* ---------- exported init ---------- */
 export async function initTasks(mode = "view") {
-  isBound = false; // DOM recreated each time PD.js loads section
+  isBound = false;
   renderShell();
   bindUIOnce();
   await loadAndRender();

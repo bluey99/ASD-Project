@@ -1,6 +1,8 @@
 // ../JS/reports.js
-// Renders the Reports section inside #panel (loaded via PD.js)
-// Reads ONLY from Firestore collection: "children" (NOT "childrenn")
+// Reports = ONLY regular child emotion logs from children/{childDocId}/history
+// Rule:
+// - if historyDoc.id field == null  => regular emotion log => SHOW in Reports
+// - if historyDoc.id field != null  => task emotion log     => DO NOT show in Reports
 
 import { db } from "./firebase.js";
 import {
@@ -9,18 +11,12 @@ import {
   getDoc,
   getDocs,
   query,
-  where,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 function $(id) {
   return document.getElementById(id);
 }
 
-/**
- * We always use the correct child doc id:
- * 1) ?childId= in URL (preferred)
- * 2) localStorage.selectedChildId (fallback)
- */
 function getActiveChildId() {
   const urlId = new URLSearchParams(window.location.search).get("childId");
   if (urlId) return urlId;
@@ -33,7 +29,7 @@ function getActiveChildId() {
 
 function toDate(tsLike) {
   if (!tsLike) return null;
-  if (typeof tsLike?.toDate === "function") return tsLike.toDate(); // Firestore Timestamp
+  if (typeof tsLike?.toDate === "function") return tsLike.toDate();
   if (tsLike instanceof Date) return tsLike;
   const d = new Date(tsLike);
   return isNaN(d.getTime()) ? null : d;
@@ -79,13 +75,8 @@ function safeText(v) {
   return String(v);
 }
 
-/**
- * ✅ ONLY ONE detailCard function (with "note" support)
- * This is the one you want.
- */
 function detailCard(label, value) {
   const isNote = String(label || "").trim().toLowerCase() === "note";
-
   return `
     <div class="detail-card ${isNote ? "note" : ""}">
       <div class="detail-label">${safeText(label)}</div>
@@ -94,9 +85,9 @@ function detailCard(label, value) {
   `;
 }
 
-async function fetchPatientName(childId) {
+async function fetchPatientName(childDocId) {
   try {
-    const snap = await getDoc(doc(db, "children", childId));
+    const snap = await getDoc(doc(db, "children", childDocId));
     if (!snap.exists()) return "Patient";
     const data = snap.data();
     return data?.name || data?.username || "Patient";
@@ -107,14 +98,22 @@ async function fetchPatientName(childId) {
 }
 
 // --------- FETCH HISTORY (child logs) ----------
-async function fetchHistoryRows(childId, patientName) {
+// Only include docs where data.id == null  (regular emotion log)
+// Skip task emotion logs (data.id != null)
+async function fetchHistoryRows(childDocId, patientName) {
   try {
-    const qHist = query(collection(db, "children", childId, "history"));
+    const qHist = query(collection(db, "children", childDocId, "history"));
     const snap = await getDocs(qHist);
 
     const rows = [];
     snap.forEach((d) => {
       const data = d.data();
+
+      // ✅ FILTER: task emotion log should not appear in Reports
+      // If field "id" is not null => it's for a task
+      if (data?.id !== null && data?.id !== undefined && data?.id !== "") {
+        return; // skip
+      }
 
       rows.push({
         id: d.id,
@@ -122,7 +121,10 @@ async function fetchHistoryRows(childId, patientName) {
         emoji: feelingToEmoji(data.feeling),
         dateObj: toDate(data.timestamp),
         dateText: formatDateTime(data.timestamp),
+
+        // ✅ assigned by should be child (patient)
         assignedBy: patientName,
+
         detailsTitle: "Child emotion log",
         details: {
           Emotion: data.feeling,
@@ -138,42 +140,6 @@ async function fetchHistoryRows(childId, patientName) {
     return rows;
   } catch (e) {
     console.error("fetchHistoryRows error:", e);
-    return [];
-  }
-}
-
-// --------- FETCH REPORTS (parent) ----------
-async function fetchParentRows(childId) {
-  try {
-    const qRep = query(collection(db, "reports"), where("childID", "==", childId));
-    const snap = await getDocs(qRep);
-
-    const rows = [];
-    snap.forEach((d) => {
-      const data = d.data();
-
-      rows.push({
-        id: d.id,
-        source: "parent",
-        emoji: feelingToEmoji(data.childReaction),
-        dateObj: toDate(data.dateAndTime),
-        dateText: formatDateTime(data.dateAndTime),
-        assignedBy: "Parent",
-        detailsTitle: "Parent report",
-        details: {
-          "Child reaction": data.childReaction,
-          Situation: data.situation,
-          Where: data.location,
-          When: formatDateTime(data.dateAndTime),
-          "How handled": data.howHandled,
-          Questions: data.questions,
-        },
-      });
-    });
-
-    return rows;
-  } catch (e) {
-    console.error("fetchParentRows error:", e);
     return [];
   }
 }
@@ -236,50 +202,33 @@ function openDetails(row) {
 
 // --------- INIT (called by PD.js) ----------
 export async function initReports() {
-  const childId = getActiveChildId();
-
-  console.log("Reports init childId:", childId);
-  console.log("Firestore path:", childId ? `children/${childId}/history` : "(missing)");
+  const childDocId = getActiveChildId();
 
   const tbody = $("reportsTbody");
-  const refreshBtn = $("reportsRefreshBtn");
-  const onlyParentToggle = $("onlyParentToggle");
   const subtitle = $("reportsSubtitle");
   const pill = $("reportsPatientPill");
 
-  if (!childId) {
+  if (!childDocId) {
     if (tbody) {
       tbody.innerHTML = `<tr><td colspan="4" class="reports-empty">Missing childId. Open patient using ?childId=...</td></tr>`;
     }
     return;
   }
 
-  const patientName = await fetchPatientName(childId);
+  const patientName = await fetchPatientName(childDocId);
   if (pill) pill.textContent = patientName;
 
-  async function load() {
-    if (tbody) {
-      tbody.innerHTML = `<tr><td colspan="4" class="reports-empty">Loading reports…</td></tr>`;
-    }
-
-    const onlyParent = !!onlyParentToggle?.checked;
-
-    const [historyRows, parentRows] = await Promise.all([
-      onlyParent ? Promise.resolve([]) : fetchHistoryRows(childId, patientName),
-      fetchParentRows(childId),
-    ]);
-
-    const all = [...historyRows, ...parentRows]
-      .filter((r) => r.dateObj instanceof Date && !isNaN(r.dateObj.getTime()))
-      .sort((a, b) => b.dateObj - a.dateObj);
-
-    renderTable(all);
-
-    if (subtitle) subtitle.textContent = `${all.length} report(s) found.`;
+  if (tbody) {
+    tbody.innerHTML = `<tr><td colspan="4" class="reports-empty">Loading reports…</td></tr>`;
   }
 
-  refreshBtn?.addEventListener("click", load);
-  onlyParentToggle?.addEventListener("change", load);
+  const historyRows = await fetchHistoryRows(childDocId, patientName);
 
-  await load();
+  const all = historyRows
+    .filter((r) => r.dateObj instanceof Date && !isNaN(r.dateObj.getTime()))
+    .sort((a, b) => b.dateObj - a.dateObj);
+
+  renderTable(all);
+
+  if (subtitle) subtitle.textContent = `${all.length} report(s) found.`;
 }

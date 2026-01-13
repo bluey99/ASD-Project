@@ -1,13 +1,15 @@
-// ../JS/tasks.js (MODULE) — Tasks (view + add) — NO place field + NO browser history
+// ../JS/tasks.js (MODULE) — Tasks (view + add) — saves childID field (NOT doc id)
 
 import { db } from "./firebase.js";
 import {
   collection,
   addDoc,
   getDocs,
+  getDoc,
   query,
   where,
   serverTimestamp,
+  doc,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const $ = (id) => document.getElementById(id);
@@ -16,7 +18,12 @@ function getParam(name) {
   return new URLSearchParams(window.location.search).get(name);
 }
 
-function getActiveChildId() {
+/**
+ * Your app sometimes passes the CHILD DOC ID in the URL/localStorage.
+ * But you want to store/query tasks by the child's "childID" FIELD (e.g. "214578903").
+ */
+function getActiveChildRef() {
+  // could be docId OR could already be the real childID
   return getParam("childId") || localStorage.getItem("selectedChildId") || null;
 }
 
@@ -41,6 +48,7 @@ function getTherapistId() {
 /* ---------- state ---------- */
 let tasksRows = [];
 let isBound = false;
+let resolvedChildID = null; // THIS is the value we will store in tasks.childId
 
 function getRoot() {
   return document.getElementById("tasksRoot") || document.getElementById("panel");
@@ -57,8 +65,29 @@ function parseTaskDate(dateStr) {
   return new Date(dateStr);
 }
 
-async function fetchTasks(childId) {
-  const q = query(collection(db, "tasks"), where("childId", "==", childId));
+/**
+ * Resolve what to use as the "childId" inside tasks.
+ * - If the given value is already digits => treat it as the real childID
+ * - Otherwise treat it as Firestore document id and read children/{docId}.childID
+ */
+async function resolveChildID() {
+  const ref = getActiveChildRef();
+  if (!ref) return null;
+
+  // already looks like "214578903"
+  if (/^\d+$/.test(ref)) return ref;
+
+  // otherwise assume it's the child DOCUMENT ID
+  const snap = await getDoc(doc(db, "children", ref));
+  if (!snap.exists()) return null;
+
+  const data = snap.data();
+  // your screenshot shows field name is exactly "childID"
+  return data?.childID || data?.childId || null;
+}
+
+async function fetchTasks(childIDValue) {
+  const q = query(collection(db, "tasks"), where("childId", "==", childIDValue));
   const snap = await getDocs(q);
 
   const rows = [];
@@ -68,7 +97,7 @@ async function fetchTasks(childId) {
       id: docSnap.id,
       date: d.displayWhen || "",
       title: d.taskName || "",
-      assignedBy: d.assignedBy || "me",
+      assignedBy: d.assignedBy || "therapist",
       status: d.status || "pending",
       mood: d.mood || "--",
       intensity: d.intensity || "--",
@@ -76,6 +105,7 @@ async function fetchTasks(childId) {
       _dateObj: parseTaskDate(d.displayWhen || ""),
     });
   });
+
   return rows;
 }
 
@@ -142,7 +172,6 @@ function renderShell() {
       <div id="tkFormView" class="tk-card tk-form hidden">
         <h3 class="tk-form-title">Add a task</h3>
 
-        <!-- autocomplete off to stop browser history suggestions -->
         <form id="tkForm" class="tk-form-grid" autocomplete="off">
           <div class="tk-field">
             <label class="tk-label">title</label>
@@ -255,25 +284,25 @@ function showForm() {
   $("tkListView")?.classList.add("hidden");
   $("tkFormView")?.classList.remove("hidden");
   $("tkFilters")?.classList.add("hidden");
-
-  // optional: reset to avoid old values sticking around
   $("tkForm")?.reset();
 }
 
 /* ---------- load + bind ---------- */
 async function loadAndRender() {
-  const childId = getActiveChildId();
   const subtitle = $("tkSubtitle");
   const tbody = $("tkTbody");
 
-  if (!childId) {
-    if (subtitle) subtitle.textContent = "Missing childId. Open patient using ?childId=...";
+  // resolve once per load
+  resolvedChildID = await resolveChildID();
+
+  if (!resolvedChildID) {
+    if (subtitle) subtitle.textContent = "Missing/invalid childId (could not resolve childID).";
     if (tbody) tbody.innerHTML = `<tr><td colspan="7" class="tk-empty">Missing childId.</td></tr>`;
     return;
   }
 
   if (subtitle) subtitle.textContent = "Loading…";
-  tasksRows = await fetchTasks(childId);
+  tasksRows = await fetchTasks(resolvedChildID);
   renderTable();
 }
 
@@ -290,9 +319,11 @@ function bindUIOnce() {
   $("tkForm")?.addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    const childId = getActiveChildId();
     const parentId = getActiveParentId();
     const therapistId = getTherapistId();
+
+    // make sure resolvedChildID exists
+    if (!resolvedChildID) resolvedChildID = await resolveChildID();
 
     if (!therapistId) {
       alert("You must be logged in as a therapist.");
@@ -300,11 +331,15 @@ function bindUIOnce() {
       return;
     }
 
+    if (!resolvedChildID) {
+      alert("Could not resolve the child's childID.");
+      return;
+    }
+
     const title = $("tkTitle")?.value.trim();
     const rawDate = $("tkDate")?.value; // yyyy-mm-dd
     const desc = $("tkDesc")?.value.trim();
 
-    // ✅ only validate the fields you actually have
     if (!title || !rawDate || !desc) {
       alert("Please fill in all fields.");
       return;
@@ -315,14 +350,16 @@ function bindUIOnce() {
     const displayWhen = `${Number(d)}/${Number(m)}/${y}`;
 
     await addDoc(collection(db, "tasks"), {
-      childId,
+      // ✅ this is now the child's "childID" field (e.g., "214578903")
+      childId: resolvedChildID,
+
       parentId,
       therapistID: therapistId,
       createdAt: serverTimestamp(),
       taskName: title,
       displayWhen,
       discussionPrompts: desc,
-      assignedBy: "me",
+      assignedBy: "therapist",
       status: "pending",
       mood: "--",
       intensity: "--",

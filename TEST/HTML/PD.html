@@ -13,8 +13,8 @@
   <!-- Page CSS -->
   <link rel="stylesheet" href="../CSS/PD.css" />
 
-  <!-- Section CSS (these can stay) -->
-<link rel="stylesheet" href="../CSS/tasks.css?v=2" />
+  <!-- Section CSS -->
+  <link rel="stylesheet" href="../CSS/tasks.css?v=2" />
   <link rel="stylesheet" href="../CSS/overview.css" />
   <link rel="stylesheet" href="../CSS/reports.css" />
   <link rel="stylesheet" href="../CSS/feedback.css" />
@@ -32,7 +32,7 @@
       <div class="actions">
         <a href="login.html" class="logout">log out</a>
 
-        <!-- Notification bell -->
+        <!-- Notification bell (your existing UI) -->
         <div class="bell" aria-label="notifications" role="button" tabindex="0">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
             <path d="M12 3a6 6 0 0 0-6 6v3.59l-1.29 1.3A1 1 0 0 0 5 16h14a1 1 0 0 0 .73-1.71L18 12.59V9a6 6 0 0 0-6-6Z" stroke="#334155" stroke-width="1.6"/>
@@ -56,30 +56,29 @@
   <!-- ===== Main content ===== -->
   <main class="page pd-page">
     <div class="pd-shell">
-
-
-
       <!-- Tabs -->
       <nav class="tabs" role="tablist" aria-label="Patient sections">
         <button class="tab active" role="tab" data-tab="overview">overview</button>
 
-        <!-- TASKS  -->
-        <button class="tab" data-tab="tasks">tasks</button>
+        <!-- ✅ tasks badge -->
+        <button class="tab" role="tab" data-tab="tasks">
+  tasks <span id="tasksDot" class="tab-dot hidden" aria-hidden="true"></span>
+</button>
 
-
-        <button class="tab" role="tab" data-tab="reports">reports</button>
+        <!-- ✅ reports badge -->
+        <button class="tab" role="tab" data-tab="reports">
+  reports <span id="reportsDot" class="tab-dot hidden" aria-hidden="true"></span>
+</button>
 
         <button class="tab" role="tab" data-tab="feedbacks">feedbacks</button>
+      </nav>
 
       <!-- Content panel -->
       <section id="panel" class="panel" aria-live="polite">overview</section>
-
     </div>
   </main>
 
-  <!-- Chart.js (global) -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer></script>
-
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer></script>
   <script src="../JS/authGuard.js" defer></script>
   <script src="../JS/PD.js" defer></script>
 </body>

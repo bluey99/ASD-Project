@@ -145,3 +145,61 @@
   border-color: rgba(46,196,182,.55);
   box-shadow: 0 14px 36px rgba(15,23,42,.10);
 }
+
+/* ===== badges on tabs ===== */
+.nav-badge{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-width:18px;
+  height:18px;
+  padding:0 6px;
+  margin-left:8px;
+  border-radius:999px;
+  background:#1e66ff;
+  color:#fff;
+  font-size:12px;
+  font-weight:900;
+  line-height:1;
+}
+.nav-badge.hidden{ display:none; }
+
+/* ===== row highlight (new/updated) ===== */
+.row-new{
+  background: rgba(30, 102, 255, 0.08) !important;
+  position: relative;
+}
+.row-new::before{
+  content:"";
+  width:8px;
+  height:8px;
+  border-radius:999px;
+  background:#1e66ff;
+  position:absolute;
+  left:8px;
+  top:50%;
+  transform: translateY(-50%);
+}
+/* tab needs relative for dot positioning */
+.tab{ position: relative; }
+
+/* blue dot on tab top-right (no number) */
+.tab-dot{
+  position:absolute;
+  top: 10px;
+  right: 12px;
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: #1e66ff;
+  box-shadow: 0 0 0 2px rgba(255,255,255,.85);
+}
+.tab-dot.hidden{ display:none; }
+
+/* unread row highlight (background only) */
+.row-unread{
+  background: rgba(30, 102, 255, 0.08) !important;
+}
+
+
+

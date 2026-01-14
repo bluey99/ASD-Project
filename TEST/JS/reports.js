@@ -1,10 +1,10 @@
 // ../JS/reports.js
-// Reports page shows:
-// 1) Regular child emotion logs from children/{childDocId}/history
-//    - Rule: if historyDoc.id == null => SHOW in Reports
-//    - if historyDoc.id != null       => task emotion log => DO NOT show in Reports
-// 2) Parent reports from top-level collection "reports"
-//    - matched by reports.childID == children/{childDocId}.childID (the numeric childID field)
+// Shows:
+// 1) Child logs in children/{childDocId}/history where data.id is null/empty (regular logs)
+// 2) Parent reports in top-level "reports" where reports.childID == children.childID (numeric)
+// ✅ Unread rows tracked by localStorage (row becomes read ONLY when clicked)
+// ✅ Reports tab shows a blue dot (no number) if any unread rows exist
+// ✅ Toggle: "Unread first" sorts unread to top
 
 import { db } from "./firebase.js";
 import {
@@ -16,26 +16,82 @@ import {
   where,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-function $(id) {
-  return document.getElementById(id);
-}
+function $(id) { return document.getElementById(id); }
 
-function getActiveChildId() {
+function getActiveChildDocId() {
   const urlId = new URLSearchParams(window.location.search).get("childId");
   if (urlId) return urlId;
-
   const saved = localStorage.getItem("selectedChildId");
   if (saved) return saved;
-
   return null;
+}
+
+/* =========================
+   Unread tracking (localStorage)
+   ========================= */
+function keyReadReports(childDocId) {
+  return `moodi_read_reports_${childDocId}`;
+}
+function getReadSet(childDocId) {
+  try {
+    const raw = localStorage.getItem(keyReadReports(childDocId));
+    const arr = raw ? JSON.parse(raw) : [];
+    return new Set(Array.isArray(arr) ? arr : []);
+  } catch {
+    return new Set();
+  }
+}
+function saveReadSet(childDocId, set) {
+  localStorage.setItem(keyReadReports(childDocId), JSON.stringify([...set]));
+}
+function markRead(childDocId, rowId, readSet) {
+  readSet.add(rowId);
+  saveReadSet(childDocId, readSet);
+}
+function isRead(childDocId, rowId, readSet) {
+  return readSet.has(rowId);
+}
+
+/* =========================
+   Tab dot
+   ========================= */
+function setTabDot(id, show) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.toggle("hidden", !show);
 }
 
 function toDate(tsLike) {
   if (!tsLike) return null;
-  if (typeof tsLike?.toDate === "function") return tsLike.toDate(); // Firestore Timestamp
+  if (typeof tsLike?.toDate === "function") return tsLike.toDate();
   if (tsLike instanceof Date) return tsLike;
-  const d = new Date(tsLike);
-  return isNaN(d.getTime()) ? null : d;
+
+  const s = String(tsLike).trim();
+
+  // dd/mm/yyyy hh:mm
+  let m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2})$/);
+  if (m) {
+    const day = Number(m[1]), month = Number(m[2]), year = Number(m[3]);
+    const hh = Number(m[4]), mm = Number(m[5]);
+    const d = new Date(year, month - 1, day, hh, mm);
+    return isNaN(d.getTime()) ? null : d;
+  }
+
+  // d/m/yyyy, h:mmAM
+  m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4}),\s*(\d{1,2}):(\d{2})(AM|PM)$/i);
+  if (m) {
+    const day = Number(m[1]), month = Number(m[2]), year = Number(m[3]);
+    let hh = Number(m[4]);
+    const mm = Number(m[5]);
+    const ap = String(m[6]).toUpperCase();
+    if (ap === "PM" && hh < 12) hh += 12;
+    if (ap === "AM" && hh === 12) hh = 0;
+    const d = new Date(year, month - 1, day, hh, mm);
+    return isNaN(d.getTime()) ? null : d;
+  }
+
+  const d2 = new Date(s);
+  return isNaN(d2.getTime()) ? null : d2;
 }
 
 function formatDateTime(tsLike) {
@@ -50,24 +106,14 @@ function normalizeFeeling(raw) {
 function feelingToEmoji(raw) {
   const f = normalizeFeeling(raw);
   const map = {
-    happy: "😊",
-    joy: "😊",
-    excited: "😄",
-    sad: "😢",
-    upset: "😢",
-    down: "😢",
-    angry: "😡",
-    mad: "😡",
-    afraid: "😨",
-    fear: "😨",
-    scared: "😨",
+    happy: "😊", joy: "😊", excited: "😄",
+    sad: "😢", upset: "😢", down: "😢",
+    angry: "😡", mad: "😡",
+    afraid: "😨", fear: "😨", scared: "😨",
     anxious: "😰",
-    surprised: "😲",
-    shocked: "😲",
-    calm: "😌",
-    relaxed: "😌",
-    bored: "😐",
-    neutral: "😐",
+    surprised: "😲", shocked: "😲",
+    calm: "😌", relaxed: "😌",
+    bored: "😐", neutral: "😐",
     disgust: "🤢",
   };
   return map[f] || "🙂";
@@ -106,13 +152,10 @@ async function fetchPatientName(childDocId) {
 
 async function fetchPatientNumericId(childDocId) {
   const data = await fetchChildDoc(childDocId);
-  // your field in Firestore is "childID"
   return data?.childID || data?.childId || null;
 }
 
-// --------- FETCH HISTORY (child logs) ----------
-// Only include docs where data.id == null  (regular emotion log)
-// Skip task emotion logs (data.id != null)
+// --------- child logs (history) ----------
 async function fetchHistoryRows(childDocId, patientName) {
   try {
     const qHist = query(collection(db, "children", childDocId, "history"));
@@ -120,19 +163,19 @@ async function fetchHistoryRows(childDocId, patientName) {
 
     const rows = [];
     snap.forEach((d) => {
-      const data = d.data();
+      const data = d.data() || {};
 
-      // ✅ FILTER: task emotion logs should not appear in Reports
-      if (data?.id !== null && data?.id !== undefined && data?.id !== "") {
-        return;
-      }
+      // regular only
+      if (data?.id !== null && data?.id !== undefined && data?.id !== "") return;
+
+      const ts = data.timestamp;
 
       rows.push({
-        id: d.id,
+        id: `child_${d.id}`, // prefix to avoid collisions with reports ids
         source: "child",
         emoji: feelingToEmoji(data.feeling),
-        dateObj: toDate(data.timestamp),
-        dateText: formatDateTime(data.timestamp),
+        dateObj: toDate(ts),
+        dateText: formatDateTime(ts),
         assignedBy: patientName,
         detailsTitle: "Child emotion log",
         details: {
@@ -140,7 +183,7 @@ async function fetchHistoryRows(childDocId, patientName) {
           Intensity: data.intensity,
           "What happened?": data.situation,
           Where: data.location,
-          When: formatDateTime(data.timestamp),
+          When: formatDateTime(ts),
           Note: data.note,
         },
       });
@@ -153,8 +196,7 @@ async function fetchHistoryRows(childDocId, patientName) {
   }
 }
 
-// --------- FETCH PARENT REPORTS (reports collection) ----------
-// Match reports.childID (numeric string) == childNumericId
+// --------- parent reports (reports collection) ----------
 async function fetchParentReportRows(childNumericId) {
   try {
     if (!childNumericId) return [];
@@ -164,14 +206,11 @@ async function fetchParentReportRows(childNumericId) {
 
     const rows = [];
     snap.forEach((d) => {
-      const data = d.data();
-
-      // reports.timestamp in your screenshot is a string: "29/01/2026 13:40"
-      // we will parse it via new Date() fallback; also accept Firestore Timestamp.
-      const ts = data.timestamp || data.dateAndTime;
+      const data = d.data() || {};
+      const ts = data.timestamp || data.dateAndTime || null;
 
       rows.push({
-        id: d.id,
+        id: `parent_${d.id}`,
         source: "parent",
         emoji: feelingToEmoji(data.childReaction),
         dateObj: toDate(ts),
@@ -186,8 +225,6 @@ async function fetchParentReportRows(childNumericId) {
           When: formatDateTime(ts),
           "How handled": data.howHandled,
           Questions: data.questions,
-          "Parent ID": data.parentID,
-          "Therapist ID": data.therapistId,
         },
       });
     });
@@ -199,40 +236,7 @@ async function fetchParentReportRows(childNumericId) {
   }
 }
 
-// --------- RENDER TABLE ----------
-function renderTable(rows) {
-  const tbody = $("reportsTbody");
-  if (!tbody) return;
-
-  if (!rows.length) {
-    tbody.innerHTML = `<tr><td colspan="4" class="reports-empty">No reports yet.</td></tr>`;
-    return;
-  }
-
-  tbody.innerHTML = rows
-    .map(
-      (r, idx) => `
-      <tr class="report-row">
-        <td class="col-emoji"><span class="emoji">${r.emoji}</span></td>
-        <td>${r.dateText}</td>
-        <td>${r.assignedBy}</td>
-        <td class="col-open">
-          <button class="open-btn" data-open="${idx}" aria-label="Open report">➜</button>
-        </td>
-      </tr>
-    `
-    )
-    .join("");
-
-  tbody.querySelectorAll("[data-open]").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const idx = Number(btn.getAttribute("data-open"));
-      openDetails(rows[idx]);
-    });
-  });
-}
-
-// --------- DETAILS PANEL ----------
+// --------- details ----------
 function openDetails(row) {
   const empty = $("reportDetailsEmpty");
   const body = $("reportDetailsBody");
@@ -255,12 +259,82 @@ function openDetails(row) {
     .join("");
 }
 
-// --------- INIT (called by PD.js) ----------
-export async function initReports() {
-  const childDocId = getActiveChildId();
-
+// --------- render ----------
+function renderTable(childDocId, rows) {
   const tbody = $("reportsTbody");
   const subtitle = $("reportsSubtitle");
+  if (!tbody) return;
+
+  const readSet = getReadSet(childDocId);
+  const unreadFirst = !!$("reportsUnreadToggle")?.checked;
+
+  let list = [...rows];
+
+  // sort newest first by default
+  list.sort((a, b) => (b.dateObj || 0) - (a.dateObj || 0));
+
+  // unread first
+  if (unreadFirst) {
+    list.sort((a, b) => {
+      const ar = isRead(childDocId, a.id, readSet) ? 1 : 0;
+      const br = isRead(childDocId, b.id, readSet) ? 1 : 0;
+      if (ar !== br) return ar - br;
+      return (b.dateObj || 0) - (a.dateObj || 0);
+    });
+  }
+
+  if (subtitle) subtitle.textContent = `${list.length} report(s) found.`;
+
+  if (!list.length) {
+    tbody.innerHTML = `<tr><td colspan="4" class="reports-empty">No reports yet.</td></tr>`;
+    setTabDot("reportsDot", false);
+    return;
+  }
+
+  const anyUnread = list.some((r) => !isRead(childDocId, r.id, readSet));
+  setTabDot("reportsDot", anyUnread);
+
+  tbody.innerHTML = list
+    .map((r, idx) => {
+      const unread = !isRead(childDocId, r.id, readSet);
+      return `
+        <tr class="report-row ${unread ? "row-unread" : ""}" data-rowid="${r.id}" data-idx="${idx}">
+          <td class="col-emoji"><span class="emoji">${r.emoji}</span></td>
+          <td>${r.dateText}</td>
+          <td>${r.assignedBy}</td>
+          <td class="col-open">
+            <button class="open-btn" data-open="${idx}" aria-label="Open report">➜</button>
+          </td>
+        </tr>
+      `;
+    })
+    .join("");
+
+  // clicking row OR arrow marks read, and arrow opens details
+  tbody.querySelectorAll("tr[data-rowid]").forEach((tr) => {
+    tr.addEventListener("click", (e) => {
+      const id = tr.getAttribute("data-rowid");
+      const idx = Number(tr.getAttribute("data-idx"));
+
+      const rs = getReadSet(childDocId);
+      if (!rs.has(id)) {
+        markRead(childDocId, id, rs);
+        tr.classList.remove("row-unread");
+      }
+
+      // if they clicked the arrow or any row area → open details
+      openDetails(list[idx]);
+
+      // update dot
+      const stillUnread = list.some((x) => !getReadSet(childDocId).has(x.id));
+      setTabDot("reportsDot", stillUnread);
+    });
+  });
+}
+
+export async function initReports() {
+  const childDocId = getActiveChildDocId();
+  const tbody = $("reportsTbody");
   const pill = $("reportsPatientPill");
 
   if (!childDocId) {
@@ -270,7 +344,6 @@ export async function initReports() {
     return;
   }
 
-  // child display name for "assigned by" in child logs
   const patientName = await fetchPatientName(childDocId);
   if (pill) pill.textContent = patientName;
 
@@ -278,19 +351,42 @@ export async function initReports() {
     tbody.innerHTML = `<tr><td colspan="4" class="reports-empty">Loading reports…</td></tr>`;
   }
 
-  // numeric childID field for matching parent reports collection
+  const childNumericId = await fetchPatientNumericId(childDocId);
+
+  async function load() {
+    const [historyRows, parentRows] = await Promise.all([
+      fetchHistoryRows(childDocId, patientName),
+      fetchParentReportRows(childNumericId),
+    ]);
+
+    const all = [...historyRows, ...parentRows]
+      .filter((r) => r.dateObj instanceof Date && !isNaN(r.dateObj.getTime()));
+
+    renderTable(childDocId, all);
+  }
+
+  $("reportsUnreadToggle")?.addEventListener("change", load);
+
+  await load();
+}
+
+export async function refreshReportsDot() {
+  const childDocId = getActiveChildDocId();
+  if (!childDocId) return;
+
   const childNumericId = await fetchPatientNumericId(childDocId);
 
   const [historyRows, parentRows] = await Promise.all([
-    fetchHistoryRows(childDocId, patientName),
+    fetchHistoryRows(childDocId, await fetchPatientName(childDocId)),
     fetchParentReportRows(childNumericId),
   ]);
 
   const all = [...historyRows, ...parentRows]
-    .filter((r) => r.dateObj instanceof Date && !isNaN(r.dateObj.getTime()))
-    .sort((a, b) => b.dateObj - a.dateObj);
+    .filter((r) => r.dateObj instanceof Date && !isNaN(r.dateObj.getTime()));
 
-  renderTable(all);
+  const readSet = getReadSet(childDocId);
+  const anyUnread = all.some((r) => !readSet.has(r.id));
 
-  if (subtitle) subtitle.textContent = `${all.length} report(s) found.`;
+  setTabDot("reportsDot", anyUnread);
 }
+

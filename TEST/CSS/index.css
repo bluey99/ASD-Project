@@ -1,123 +1,229 @@
-/* ===== Index page layout ===== */
+/* ===============================
+   INDEX PAGE — Moodi
+   =============================== */
+
 .index-page{
-  width: 100%;
+  min-height: 100vh;
+  padding-bottom: 60px;
+  background:
+    radial-gradient(520px 260px at 12% 40%, rgba(46,196,182,.20), transparent 65%),
+    radial-gradient(520px 260px at 88% 42%, rgba(42,111,151,.20), transparent 65%),
+    linear-gradient(180deg, #eef7fc, #eef7fc);
 }
 
-/* hero */
+/* ===============================
+   HERO
+   =============================== */
+
 .hero{
-  text-align:center;
-  margin-top: 10px;
+  text-align: center;
+  margin-top: 42px;
+  margin-bottom: 36px;
 }
+
 .hero h1{
-  font-size: 40px;
-  font-weight: 800;
-  margin-bottom: 6px;
+  font-size: 36px;
+  font-weight: 900;
+  color: #0f172a;
+  margin: 0;
 }
+
 .hero p{
-  color: var(--muted);
+  margin-top: 10px;
+  font-size: 14px;
+  color: #64748b;
 }
 
-/* header + search */
+/* ===============================
+   SECTION HEAD
+   =============================== */
+
 .section-head{
-  margin-top: 22px;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap:14px;
+  margin-top: 34px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
 }
+
 .section-head h2{
-  font-size: 20px;
-  font-weight: 800;
-  text-transform: lowercase;
+  margin: 0;
+  font-size: 18px;
+  font-weight: 900;
+  color: #0f172a;
 }
 
-/* search */
+/* Search bar */
 .searchbar{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 18px;
+  width: 100%;
+  height: 50%;
+  background: rgba(255,255,255,.94);
   border-radius: 999px;
-  background: rgba(255,255,255,.85);
-  border: 1px solid rgba(215,228,242,.9);
-  width: min(420px, 90vw);
-  box-shadow: 0 10px 30px rgba(15,23,42,.06);
+  box-shadow: 0 14px 34px rgba(15,23,42,.10);
 }
+
 .searchbar input{
-  border:none;
-  background:transparent;
-  outline:none;
-  width:100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  width: 100%;
+  font-size: 14px;
+  color: #0f172a;
 }
 
-/* ===== Patients area ===== */
+/* ===============================
+   PATIENTS AREA
+   =============================== */
+
 .patients-area{
-  width: 90%;
-  margin: 26px auto 0;
+  margin-top: 42px;
 }
 
-/* carousel */
+/* ===== CAROUSEL WRAPPER ===== */
 .carousel-wrap{
-  display:grid;
-  grid-template-columns: 44px 1fr 44px;
-  align-items:center;
-  gap:12px;
+  width: min(1500px, 96%);
+  margin: 0 auto;
+  position: relative;
+
+  display: grid;
+  grid-template-columns: 48px 1fr 48px;
+  align-items: center;
+  gap: 14px;
 }
 
-.arrow{
-  width:40px;
-  height:40px;
-  border-radius:50%;
-  border:1px solid rgba(215,228,242,.9);
-  background: rgba(255,255,255,.9);
-  cursor:pointer;
-  font-size:20px;
-  display:grid;
-  place-items:center;
-  transition:.2s;
-}
-.arrow:hover{
-  transform: translateY(-1px);
-  box-shadow: 0 10px 24px rgba(15,23,42,.08);
-}
-
-/* rail */
+/* ===== SCROLLABLE RAIL ===== */
 .carousel{
-  display:grid;
-  grid-auto-flow: column;
-  grid-auto-columns: 240px;
+  display: flex;
+  align-items: stretch;
   gap: 20px;
-  overflow-x:auto;
-  padding: 12px 6px 18px;
-  scroll-behavior:smooth;
+
+  overflow-x: auto;
+  overflow-y: visible;
+  padding: 18px 10px;
+
+  scroll-behavior: smooth;
+  scroll-snap-type: x mandatory;
+
+  /* scrollbar (optional) */
+  scrollbar-width: thin;
 }
 
-/* patient cards */
-.patient-card{
-  background: rgba(255,255,255,.92);
-  border: 1px solid rgba(215,228,242,.9);
-  border-radius: 18px;
-  padding: 70px 75px;
-  min-height: 160px;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  gap:12px;
-  cursor:pointer;
-  transition:.2s;
-  box-shadow: 0 12px 30px rgba(15,23,42,.07);
+/* Chrome / Edge */
+.carousel::-webkit-scrollbar{
+  height: 8px;
 }
+.carousel::-webkit-scrollbar-thumb{
+  background: rgba(15,23,42,.18);
+  border-radius: 999px;
+}
+
+/* ===============================
+   PATIENT CARDS
+   =============================== */
+
+.patient-card{
+  flex: 0 0 260px;          /* 🔑 DO NOT REMOVE */
+  height: 190px;
+
+  background: rgba(255,255,255,.94);
+  border-radius: 22px;
+  border: 1px solid rgba(215,228,242,.9);
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  cursor: pointer;
+  scroll-snap-align: start;
+
+  box-shadow: 0 18px 44px rgba(15,23,42,.12);
+  transition: transform .15s ease, box-shadow .2s ease;
+}
+
 .patient-card:hover{
   transform: translateY(-4px);
-  box-shadow: 0 18px 46px rgba(15,23,42,.12);
-}
-.patient-card.add{
-  outline: 2px dashed rgba(203,213,225,.9);
-  background: rgba(247,251,255,.95);
+  box-shadow: 0 26px 64px rgba(15,23,42,.18);
 }
 
-/* responsive */
-@media (max-width: 900px){
-  .patients-area{ width: 95%; }
+.patient-card .icon{
+  opacity: .85;
+}
+
+.patient-card .name{
+  font-size: 15px;
+  font-weight: 900;
+  color: #0f172a;
+}
+
+.patient-card .sub{
+  font-size: 13px;
+  color: #64748b;
+}
+
+/* ===== ADD NEW CARD ===== */
+.patient-card.add{
+  border: 2px dashed rgba(15,23,42,.18);
+  background: rgba(255,255,255,.65);
+}
+
+.patient-card.add .name{
+  font-weight: 800;
+}
+
+/* ===============================
+   ARROWS
+   =============================== */
+
+.arrow{
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 1px solid rgba(215,228,242,.95);
+  background: rgba(255,255,255,.92);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 22px;
+  font-weight: 900;
+  color: #0f172a;
+
+  cursor: pointer;
+  box-shadow: 0 10px 26px rgba(15,23,42,.12);
+  transition: transform .12s ease, box-shadow .2s ease;
+}
+
+.arrow:hover{
+  transform: translateY(-1px);
+  box-shadow: 0 14px 34px rgba(15,23,42,.18);
+}
+
+.arrow:active{
+  transform: translateY(0);
+}
+
+.arrow.left{ justify-self: start; }
+.arrow.right{ justify-self: end; }
+
+/* ===============================
+   RESPONSIVE
+   =============================== */
+
+@media (max-width: 720px){
+  .hero h1{ font-size: 28px; }
+
+  .carousel-wrap{
+    grid-template-columns: 36px 1fr 36px;
+  }
+
+  .patient-card{
+    flex: 0 0 220px;
+  }
 }

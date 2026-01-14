@@ -4,17 +4,38 @@ import {
   collection,
   getDocs,
   query,
-  where
+  where,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// ====== Global list from Firestore ======
 let patients = [];
 
-// create a short auto code from name + index (fallback if Firestore has no code)
-const makeCode = (name, idx) =>
-  (name.slice(0, 2) + String(idx + 1).padStart(2, "0")).toUpperCase();
+/* =========================
+   Helpers
+   ========================= */
+function $(id) {
+  return document.getElementById(id);
+}
 
-// SVGs
+function getTherapistId() {
+  // 1) direct
+  const direct = localStorage.getItem("therapistId");
+  if (direct) return direct;
+
+  // 2) moodiTherapist object (same pattern you use in other pages)
+  const raw = localStorage.getItem("moodiTherapist");
+  if (raw) {
+    try {
+      const obj = JSON.parse(raw);
+      return obj?.docId || obj?.id || null;
+    } catch {}
+  }
+  return null;
+}
+
+// fallback code if no childID
+const makeCode = (name, idx) =>
+  (String(name || "").slice(0, 2) + String(idx + 1).padStart(2, "0")).toUpperCase();
+
 const personSVG = `
   <svg width="36" height="36" viewBox="0 0 24 24" fill="none" aria-hidden="true">
     <circle cx="12" cy="8" r="3.2" stroke="#334155" stroke-width="1.6"></circle>
@@ -28,6 +49,9 @@ const addPersonSVG = `
   </svg>
 `;
 
+/* =========================
+   Cards
+   ========================= */
 function buildAddCard() {
   const article = document.createElement("article");
   article.className = "patient-card add";
@@ -38,12 +62,10 @@ function buildAddCard() {
   article.setAttribute("role", "button");
   article.setAttribute("tabindex", "0");
 
-  article.addEventListener("click", () => {
-    window.location.href = "addPatient.html";
-  });
-
-  article.addEventListener("keypress", (e) => {
-    if (e.key === "Enter" || e.key === " ") article.click();
+  const go = () => (window.location.href = "addPatient.html");
+  article.addEventListener("click", go);
+  article.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") go();
   });
 
   return article;
@@ -61,139 +83,165 @@ function buildPatientCard(name, code, childDocId) {
     <div class="sub">${code || ""}</div>
   `;
 
-  article.addEventListener("click", () => {
-    // ✅ store selected child doc id for any page that needs fallback
+  const go = () => {
     localStorage.setItem("selectedChildId", childDocId);
-
     window.location.href = `PD.html?childId=${encodeURIComponent(childDocId)}`;
-  });
+  };
 
-  article.addEventListener("keypress", (e) => {
-    if (e.key === "Enter" || e.key === " ") article.click();
+  article.addEventListener("click", go);
+  article.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") go();
   });
 
   return article;
 }
 
 function renderCards(list) {
-  const rail = document.getElementById("rail");
+  const rail = $("rail");
   if (!rail) return;
 
   rail.innerHTML = "";
+
+  // ALWAYS show the add card (so you can confirm JS is working)
   rail.appendChild(buildAddCard());
 
   const frag = document.createDocumentFragment();
   list.forEach((child, idx) => {
     const name = child.name || "Unnamed";
-    const code = child.code || makeCode(name, idx);
+    const code = child.childID || child.code || makeCode(name, idx);
     frag.appendChild(buildPatientCard(name, code, child.id));
   });
 
   rail.appendChild(frag);
 }
 
+/* =========================
+   Search
+   ========================= */
 function setupSearch() {
-  const input = document.getElementById("search");
+  const input = $("search");
   if (!input) return;
 
-  const doFilter = () => {
+  input.addEventListener("input", () => {
     const q = input.value.trim().toLowerCase();
+
     const filtered = q
-      ? patients.filter((p) =>
-          (p.name || "").toLowerCase().includes(q) ||
-          (p.code || "").toLowerCase().includes(q) ||
-          (p.childID || "").toLowerCase().includes(q)
-        )
+      ? patients.filter((p) => {
+          const name = (p.name || "").toLowerCase();
+          const childID = (p.childID || "").toLowerCase();
+          const code = (p.code || "").toLowerCase();
+          return name.includes(q) || childID.includes(q) || code.includes(q);
+        })
       : patients;
 
     renderCards(filtered);
-  };
-
-  input.addEventListener("input", doFilter);
+  });
 }
 
+/* =========================
+   Arrows (prev/next)
+   ========================= */
 function setupArrows() {
-  const rail = document.getElementById("rail");
-  const prev = document.getElementById("prev");
-  const next = document.getElementById("next");
+  const rail = $("rail");
+  const prev = $("prev");
+  const next = $("next");
   if (!rail || !prev || !next) return;
 
-  function cardStep() {
-    const firstCard = rail.querySelector(".patient-card");
-    const w = firstCard ? firstCard.getBoundingClientRect().width : 280;
-    return Math.round(w + 16);
-  }
+  prev.type = "button";
+  next.type = "button";
 
-  prev.addEventListener("click", () => {
-    rail.scrollBy({ left: -cardStep(), behavior: "smooth" });
+  const step = () => {
+    const firstCard = rail.querySelector(".patient-card");
+    const cardW = firstCard ? firstCard.getBoundingClientRect().width : 300;
+    const gap = parseFloat(getComputedStyle(rail).gap || "16") || 16;
+    return Math.round(cardW + gap);
+  };
+
+  prev.addEventListener("click", (e) => {
+    e.preventDefault();
+    rail.scrollBy({ left: -step(), behavior: "smooth" });
   });
 
-  next.addEventListener("click", () => {
-    rail.scrollBy({ left: cardStep(), behavior: "smooth" });
+  next.addEventListener("click", (e) => {
+    e.preventDefault();
+    rail.scrollBy({ left: +step(), behavior: "smooth" });
   });
 }
 
+/* =========================
+   Notifications dropdown
+   ========================= */
 function setupNotifications() {
   const bell = document.querySelector(".bell");
-  const notifBox = document.getElementById("notifBox");
+  const notifBox = $("notifBox");
+  if (!bell || !notifBox) return;
 
-  if (bell && notifBox) {
-    bell.addEventListener("click", (e) => {
-      e.stopPropagation();
-      notifBox.classList.toggle("show");
-    });
+  bell.addEventListener("click", (e) => {
+    e.stopPropagation();
+    notifBox.classList.toggle("show");
+  });
 
-    document.addEventListener("click", (e) => {
-      if (!bell.contains(e.target)) notifBox.classList.remove("show");
-    });
-  }
+  document.addEventListener("click", (e) => {
+    if (!bell.contains(e.target)) notifBox.classList.remove("show");
+  });
 }
 
+/* =========================
+   Firestore load (robust)
+   ========================= */
 async function loadChildrenFromFirestore() {
-  try {
-    const therapistId = localStorage.getItem("therapistId");
+  const therapistId = getTherapistId();
 
-    if (!therapistId) {
-      // not logged in → go login
-      window.location.href = "login.html";
-      return;
+  if (!therapistId) {
+    // If you want: redirect to login
+    // window.location.href = "login.html";
+    console.warn("No therapistId found in localStorage.");
+    patients = [];
+    renderCards(patients);
+    return;
+  }
+
+  try {
+    const childrenCol = collection(db, "children");
+
+    // Try therapistID first
+    let snap = await getDocs(query(childrenCol, where("therapistID", "==", therapistId)));
+
+    // If empty, try therapistId (some DBs use camelCase)
+    if (snap.empty) {
+      snap = await getDocs(query(childrenCol, where("therapistId", "==", therapistId)));
     }
 
-    // ✅ only my patients
-    const qRef = query(
-      collection(db, "children"),
-      where("therapistID", "==", therapistId)
-    );
-
-    const snap = await getDocs(qRef);
-
     patients = snap.docs.map((docSnap) => {
-      const d = docSnap.data();
+      const d = docSnap.data() || {};
       return {
         id: docSnap.id,
-        name: d.name || "Unnamed",
-        childID: d.childID || "",
-        parentID: d.parentID || "",
-        code: d.childID || ""
+        name: d.name || d.username || "Unnamed",
+        childID: d.childID || d.childId || "",
+        parentID: d.parentID || d.parentId || "",
+        code: d.childID || d.childId || "",
       };
     });
 
     renderCards(patients);
-    setupSearch();
-    setupArrows();
-    console.log("Loaded MY children ✅", therapistId, patients);
-
+    console.log("Loaded patients ✅", therapistId, patients);
   } catch (err) {
     console.error("Failed to load children ❌", err);
     patients = [];
     renderCards(patients);
-    setupSearch();
-    setupArrows();
   }
 }
 
-
-document.addEventListener("DOMContentLoaded", () => {
+/* =========================
+   Init
+   ========================= */
+document.addEventListener("DOMContentLoaded", async () => {
   setupNotifications();
-  loadChildrenFromFirestore();
+  setupSearch();
+  setupArrows();
+
+  // IMPORTANT: render immediately so you ALWAYS see at least "add new patient"
+  renderCards([]);
+
+  await loadChildrenFromFirestore();
 });

@@ -216,3 +216,8 @@
 .tk-col-assigned { width: 120px; }
 .tk-assigned-cell { white-space: nowrap; }
 
+/* assigned by column wider + prevent wrapping */
+.tk-col-assigned { width: 140px; }
+.tk-assigned-cell { white-space: nowrap; }
+
+

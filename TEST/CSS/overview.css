@@ -1,4 +1,7 @@
-/* ../CSS/overview.css — matches theme.css (login/signup look) */
+/* ../CSS/overview.css — updated layout:
+   - removed patient details/app account cards (now only top + ML stack)
+   - reset PIN moved into modal from patient card
+*/
 
 /* ---------- base wrappers ---------- */
 .ov-wrap{
@@ -13,33 +16,7 @@
   to{ opacity:1; transform: translateY(0); }
 }
 
-/* ---------- header row ---------- */
-.ov-head{
-  display:flex;
-  align-items:flex-start;
-  justify-content:space-between;
-  gap:16px;
-  margin-bottom: 16px;
-}
-
-.ov-title{
-  margin:0;
-  font-size: 22px;
-  font-weight: 900;
-  letter-spacing: -0.02em;
-  color: var(--ink);
-}
-
-.ov-sub{
-  margin:6px 0 0;
-  font-size: 13px;
-  color: var(--muted);
-}
-
-/* ---------- buttons ----------
-   IMPORTANT: .btn-primary is already defined in theme.css
-   So here we only define ghost/light buttons and override reset width.
-*/
+/* ---------- buttons ---------- */
 .btn-ghost,
 .btn-light{
   border: 1px solid rgba(215,228,242,.95);
@@ -73,11 +50,11 @@
   box-shadow:none;
 }
 
-/* ✅ Reset PIN should match login button and be full width */
-#btnResetPin.btn-primary{
-  width: 70%;
-  margin-top: 10px;
-  padding: 12px 12px; 
+.btn-mini{
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 900;
 }
 
 /* ---------- top mini cards ---------- */
@@ -98,7 +75,6 @@
   overflow: hidden;
 }
 
-/* soft premium glow */
 .ov-mini::before{
   content:"";
   position:absolute;
@@ -116,12 +92,12 @@
   font-size: 12px;
   color: var(--muted);
   margin-bottom: 6px;
-  font-weight: 700;
+  font-weight: 800;
 }
 
 .ov-mini-value{
   font-size: 18px;
-  font-weight: 900;
+  font-weight: 1000;
   color: var(--ink);
 }
 
@@ -131,12 +107,35 @@
   color: var(--muted);
 }
 
-/* ---------- main grid (2 cards) ---------- */
-.ov-grid{
-  display:grid;
-  grid-template-columns: 1.15fr .85fr;
-  gap: 14px;
-  align-items:start;
+.ov-mini-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap: 12px;
+}
+
+.ov-mini-username{
+  font-weight: 900;
+  color: rgba(51,65,85,.92);
+}
+
+/* age badge in patient card */
+.ov-age-badge{
+  font-size: 12px;
+  color: var(--ink);
+  background: rgba(248,250,252,.92);
+  border: 1px solid rgba(215,228,242,.95);
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-weight: 1000;
+  white-space: nowrap;
+}
+
+.ov-mini-actions{
+  display:flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 12px;
 }
 
 /* ---------- card ---------- */
@@ -150,7 +149,6 @@
   overflow: hidden;
 }
 
-/* subtle diagonal sheen for creativity */
 .ov-card::after{
   content:"";
   position:absolute;
@@ -172,192 +170,26 @@
   align-items:center;
   justify-content:space-between;
   gap:12px;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 .ov-card h3{
   margin:0;
   font-size: 15px;
-  font-weight: 900;
+  font-weight: 1000;
   color: var(--ink);
 }
 
-.ov-age-mini{
-  font-size: 12px;
-  color: var(--muted);
-  background: rgba(248,250,252,.92);
-  border: 1px solid rgba(215,228,242,.95);
-  padding: 6px 10px;
-  border-radius: 999px;
-  font-weight: 800;
-}
-
-/* ---------- rows ---------- */
-.ov-row{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding: 10px 2px;
-  border-bottom: 1px dashed rgba(215,228,242,.95);
-}
-
-.ov-row:last-of-type{
-  border-bottom:none;
-}
-
-.ov-key{
-  font-size: 12px;
-  color: var(--muted);
-  font-weight: 700;
-}
-
-.ov-val{
-  font-size: 13px;
-  font-weight: 900;
-  color: var(--ink);
-}
-
-/* ---------- actions ---------- */
-.ov-actions{
-  display:flex;
-  flex-wrap:wrap;
-  gap:10px;
-  margin-top: 12px;
-}
-
-.ov-hint{
-  margin-top: 12px;
-  font-size: 12px;
-  color: var(--muted);
-}
-
-/* ---------- pin box ---------- */
-.pin-box{
-  margin-top: 12px;
-  border: 1px solid rgba(215,228,242,.95);
-  background: rgba(248,250,252,.75);
-  border-radius: 16px;
-  padding: 14px;
-}
-
-.pin-label{
-  font-size: 12px;
-  color: var(--muted);
-  font-weight: 800;
-}
-
-.pin-value{
-  margin-top: 8px;
-  font-size: 20px;
-  font-weight: 900;
-  letter-spacing: 0.10em;
-  color: var(--ink);
-}
-
-.pin-actions{
-  display:flex;
-  gap:10px;
-  margin-top: 10px;
-}
-
-.pin-hint{
-  margin-top: 10px;
-  font-size: 12px;
-  color: var(--muted);
-}
-
-/* ---------- created at ---------- */
-.ov-created{
-  margin-top: 12px;
-  font-size: 12px;
-  color: var(--muted);
-  text-align:right;
-}
-
-/* ---------- toast ---------- */
-.toast{
-  position: fixed;
-  left: 50%;
-  bottom: 18px;
-  transform: translateX(-50%) translateY(14px);
-  background: #0f172a;
-  color:#fff;
-  padding: 10px 14px;
-  border-radius: 999px;
-  font-size: 13px;
-  opacity: 0;
-  pointer-events:none;
-  transition: opacity .2s ease, transform .2s ease;
-  z-index: 9999;
-  box-shadow: 0 12px 30px rgba(2,6,23,.3);
-}
-
-.toast.show{
-  opacity: 1;
-  transform: translateX(-50%) translateY(0);
-}
-
-/* ---------- responsive ---------- */
-@media (max-width: 900px){
-  .ov-grid{ grid-template-columns: 1fr; }
-  .ov-top{ grid-template-columns: 1fr; }
-}
-/* ===========================
-   FORCE Reset PIN = Login Button
-   (fixes any old btn-primary rules)
-   =========================== */
-#btnResetPin{
-  width:100%;
-  border:none;
-  border-radius:12px;
-
-  padding:12px 16px;
-  background: linear-gradient(135deg, var(--primary), var(--primary2));
-  color:#fff;
-
-  font-weight:800;
-  letter-spacing:.4px;
-  font-size:14px;
-
-  cursor:pointer;
-  box-shadow: 0 12px 26px rgba(15,61,94,.25);
-  transition: transform .12s ease, box-shadow .2s ease, filter .2s ease;
-}
-
-#btnResetPin:hover{
-  transform: translateY(-1px);
-  box-shadow: 0 16px 34px rgba(15,61,94,.30);
-  filter: saturate(1.05);
-}
-
-#btnResetPin:active{
-  transform: translateY(0);
-  box-shadow: 0 10px 22px rgba(15,61,94,.22);
-}
-
-#btnResetPin:disabled{
-  opacity:.6;
-  cursor:not-allowed;
-  transform:none;
-  box-shadow:none;
-}
-
-/* ===========================
-   ML cards (Trend + Triggers)
-   =========================== */
-
-.ov-ml-grid{
+/* ---------- ML stack (trend then triggers) ---------- */
+.ov-ml-stack{
   margin-top: 14px;
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: 14px;
   align-items: start;
 }
 
-.ov-ml-card .ov-card-head{
-  margin-bottom: 8px;
-}
-
+/* badges */
 .ov-badges{
   display:flex;
   gap:8px;
@@ -372,7 +204,7 @@
   border: 1px solid rgba(215,228,242,.95);
   padding: 6px 10px;
   border-radius: 999px;
-  font-weight: 900;
+  font-weight: 1000;
 }
 
 .ov-badge-risk{
@@ -382,13 +214,15 @@
 
 .ov-ml-sub{
   font-size: 12px;
-  color: var(--muted);
+  color: rgba(51,65,85,.92);
   margin-bottom: 10px;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: geometricPrecision;
 }
 
 .ov-chart-wrap{
   border: 1px solid rgba(215,228,242,.95);
-  background: rgba(248,250,252,.72);
+  background: rgba(248,250,252,.82);
   border-radius: 16px;
   padding: 12px;
   overflow:hidden;
@@ -397,7 +231,9 @@
 .ov-ml-foot{
   margin-top: 10px;
   font-size: 12px;
-  color: var(--muted);
+  color: rgba(51,65,85,.92);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: geometricPrecision;
 }
 
 .ov-mini-table{
@@ -417,30 +253,12 @@
 .ov-mini-table .row:last-child{ border-bottom:none; }
 
 .ov-mini-table .k{
-  color: var(--muted);
-  font-weight: 800;
+  color: rgba(51,65,85,.92);
+  font-weight: 900;
 }
 .ov-mini-table .v{
   color: var(--ink);
-  font-weight: 900;
-}
-
-@media (max-width: 900px){
-  .ov-ml-grid{ grid-template-columns: 1fr; }
-}
-
-/* Sharper text (fix "blurry gray") */
-.ov-ml-sub,
-.ov-ml-foot,
-.ov-mini-table .k{
-  color: rgba(51,65,85,.92) !important; /* slate-700-ish */
-  -webkit-font-smoothing: antialiased;
-  text-rendering: geometricPrecision;
-}
-
-/* Axis label clarity */
-.ov-chart-wrap{
-  background: rgba(248,250,252,.82);
+  font-weight: 1000;
 }
 
 /* Info button */
@@ -452,7 +270,7 @@
   border: 1px solid rgba(215,228,242,.95);
   background: rgba(255,255,255,.92);
   color: rgba(30,41,59,.95);
-  font-weight: 900;
+  font-weight: 1000;
   font-size: 12px;
   line-height: 1;
   cursor: pointer;
@@ -461,9 +279,7 @@
   justify-content:center;
 }
 
-.ov-info:hover{
-  transform: translateY(-1px);
-}
+.ov-info:hover{ transform: translateY(-1px); }
 
 /* Popup */
 .ov-pop{
@@ -529,9 +345,132 @@
   font-size: 12px;
   margin-bottom: 4px;
 }
+
 .ov-catbox .cat-items{
   font-size: 12px;
   color: rgba(51,65,85,.92);
 }
 
+/* ---------- pin box (inside modal) ---------- */
+.pin-box{
+  margin-top: 12px;
+  border: 1px solid rgba(215,228,242,.95);
+  background: rgba(248,250,252,.75);
+  border-radius: 16px;
+  padding: 14px;
+}
 
+.pin-label{
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 900;
+}
+
+.pin-value{
+  margin-top: 8px;
+  font-size: 20px;
+  font-weight: 1000;
+  letter-spacing: 0.10em;
+  color: var(--ink);
+}
+
+.pin-actions{
+  display:flex;
+  gap:10px;
+  margin-top: 10px;
+}
+
+.pin-hint{
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* ---------- modal ---------- */
+.ov-modal{
+  position: fixed;
+  inset: 0;
+  display: none;
+  z-index: 9998;
+}
+
+.ov-modal.show{ display:block; }
+
+.ov-modal-backdrop{
+  position:absolute;
+  inset:0;
+  background: rgba(2,6,23,.45);
+  backdrop-filter: blur(3px);
+}
+
+.ov-modal-card{
+  position: relative;
+  width: min(520px, 92vw);
+  margin: 10vh auto 0;
+  border: 1px solid rgba(215,228,242,.95);
+  background: rgba(255,255,255,.96);
+  border-radius: 18px;
+  padding: 16px;
+  box-shadow: 0 22px 70px rgba(15,23,42,.22);
+  overflow:hidden;
+  z-index: 2;
+}
+
+.ov-modal-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.ov-modal-title{
+  font-size: 15px;
+  font-weight: 1000;
+  color: var(--ink);
+}
+
+.ov-modal-sub{
+  margin-top: 4px;
+  font-size: 12px;
+  color: rgba(51,65,85,.92);
+}
+
+.ov-modal-x{
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  border: 1px solid rgba(215,228,242,.95);
+  background: rgba(248,250,252,.92);
+  cursor: pointer;
+  font-weight: 1000;
+  color: rgba(30,41,59,.95);
+}
+
+/* ---------- toast ---------- */
+.toast{
+  position: fixed;
+  left: 50%;
+  bottom: 18px;
+  transform: translateX(-50%) translateY(14px);
+  background: #0f172a;
+  color:#fff;
+  padding: 10px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  opacity: 0;
+  pointer-events:none;
+  transition: opacity .2s ease, transform .2s ease;
+  z-index: 9999;
+  box-shadow: 0 12px 30px rgba(2,6,23,.3);
+}
+
+.toast.show{
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ---------- responsive ---------- */
+@media (max-width: 900px){
+  .ov-top{ grid-template-columns: 1fr; }
+}

@@ -358,7 +358,7 @@ function bindUIOnce() {
     const childName = await getChildName(childId);
     await addParentNotification({ parentID, childName });
 
-    alert("Feedback added ✅");
+    alert("Feedback added ");
     showList();
     await loadAndRender();
   });

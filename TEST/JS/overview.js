@@ -1,7 +1,9 @@
-// ../JS/overview.js  (FULL UPDATED)
-// - Loads patient profile + PIN reset
-// - Runs ML widgets (trend + triggers)
-// - Handles info (i) popups WITHOUT creating a new file
+// ../JS/overview.js (FULL UPDATED)
+// - Patient card now shows: name + username + age badge + Reset PIN button (opens modal)
+// - Removed patient details/app account cards from UI (JS no longer targets them)
+// - Parent card label fixed + copy buttons kept
+// - ML cards stacked (trend then triggers)
+// - Info (i) popups kept inside this file
 
 import { db } from "./firebase.js";
 import {
@@ -25,12 +27,6 @@ function showToast(msg) {
   t.classList.add("show");
   clearTimeout(showToast._timer);
   showToast._timer = setTimeout(() => t.classList.remove("show"), 2200);
-}
-
-function formatCreatedAt(ts) {
-  if (!ts) return "—";
-  const d = ts.toDate ? ts.toDate() : new Date(ts);
-  return d.toLocaleString();
 }
 
 function calculateAgeYM(birthdateStr) {
@@ -61,12 +57,22 @@ async function sha256Hex(text) {
 }
 
 async function copyText(text) {
-  await navigator.clipboard.writeText(text);
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch {
+    // fallback
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand("copy");
+    ta.remove();
+  }
 }
 
 /* ---------------- child doc resolver ---------------- */
 /**
- * ✅ ALWAYS use collection "children"
+ * Collection: "children"
  * URL param childId can be:
  * 1) Firestore doc id
  * 2) 9-digit childID field
@@ -75,7 +81,7 @@ async function getChildDocRefFromUrl() {
   const param = new URLSearchParams(window.location.search).get("childId");
   if (!param) return null;
 
-  // resolve by 9-digit childID
+  // resolve by 9-digit childID field
   if (/^\d{9}$/.test(param)) {
     const qRef = query(
       collection(db, "children"),
@@ -93,16 +99,13 @@ async function getChildDocRefFromUrl() {
 
 /* ---------------- popups (info i) ---------------- */
 function initInfoPopups() {
-  // avoid double-binding when tab reloads
   if (window.__OV_POPUPS_READY__) return;
   window.__OV_POPUPS_READY__ = true;
 
-  // open/close from buttons with data-pop
   document.addEventListener("click", (e) => {
     const infoBtn = e.target.closest(".ov-info");
     const closeBtn = e.target.closest("[data-close]");
 
-    // Close button
     if (closeBtn) {
       const id = closeBtn.getAttribute("data-close");
       const pop = document.getElementById(id);
@@ -113,13 +116,11 @@ function initInfoPopups() {
       return;
     }
 
-    // Info button toggle
     if (infoBtn) {
       const id = infoBtn.getAttribute("data-pop");
       const pop = document.getElementById(id);
       if (!pop) return;
 
-      // close other open popups
       document.querySelectorAll(".ov-pop.show").forEach((p) => {
         if (p !== pop) {
           p.classList.remove("show");
@@ -132,7 +133,6 @@ function initInfoPopups() {
       return;
     }
 
-    // click outside closes any popup
     const clickedInsidePopup = e.target.closest(".ov-pop");
     if (!clickedInsidePopup) {
       document.querySelectorAll(".ov-pop.show").forEach((p) => {
@@ -140,6 +140,42 @@ function initInfoPopups() {
         p.setAttribute("aria-hidden", "true");
       });
     }
+  });
+}
+
+/* ---------------- modal helpers ---------------- */
+function openModal(id) {
+  const m = document.getElementById(id);
+  if (!m) return;
+  m.classList.add("show");
+  m.setAttribute("aria-hidden", "false");
+  document.body.style.overflow = "hidden";
+}
+
+function closeModal(id) {
+  const m = document.getElementById(id);
+  if (!m) return;
+  m.classList.remove("show");
+  m.setAttribute("aria-hidden", "true");
+  document.body.style.overflow = "";
+}
+
+function initModalClose() {
+  if (window.__OV_MODAL_READY__) return;
+  window.__OV_MODAL_READY__ = true;
+
+  document.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-close-modal]");
+    if (!btn) return;
+    const id = btn.getAttribute("data-close-modal");
+    closeModal(id);
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "Escape") return;
+    // close only if open
+    const open = document.querySelector(".ov-modal.show");
+    if (open?.id) closeModal(open.id);
   });
 }
 
@@ -159,39 +195,32 @@ async function loadOverview() {
 
   const d = snap.data();
 
-  // created at (optional element)
-  const createdEl = $("ovCreatedAt");
-  if (createdEl) createdEl.textContent = `Created: ${formatCreatedAt(d.createdAt)}`;
-
-  // top mini cards
+  // ---- patient mini card
   $("ovName") && ($("ovName").textContent = d.name || "—");
-  $("ovChildID") && ($("ovChildID").textContent = d.childID || "—");
-  $("ovParentIDInline") && ($("ovParentIDInline").textContent = d.parentID || "—");
-
-  // details card
-  $("ovFullName") && ($("ovFullName").textContent = d.name || "—");
-  $("ovChildID2") && ($("ovChildID2").textContent = d.childID || "—");
-  $("ovParentID2") && ($("ovParentID2").textContent = d.parentID || "—");
+  $("ovUsernameMini") && ($("ovUsernameMini").textContent = d.childID || "—");
 
   const ageYM = calculateAgeYM(d.birthdate);
-  $("ovAge") && ($("ovAge").textContent = ageYM);
-  $("ovAgeMini") && ($("ovAgeMini").textContent = `Age: ${ageYM}`);
+  $("ovAgeBadge") && ($("ovAgeBadge").textContent = `Age: ${ageYM}`);
 
-  // account card
-  $("ovUsername") && ($("ovUsername").textContent = d.username || "—");
+  // ---- parent mini card
+  $("ovParentID") && ($("ovParentID").textContent = d.parentID || "—");
+  $("ovChildID") && ($("ovChildID").textContent = d.childID || "—");
 
-  // copy buttons
+  // copy buttons (kept)
   $("copyChildID")?.addEventListener("click", async () => {
     await copyText(d.childID || "");
-    showToast("Patient ID copied ✅");
+    showToast("Patient ID copied ");
   });
 
   $("copyParentID")?.addEventListener("click", async () => {
     await copyText(d.parentID || "");
-    showToast("Parent ID copied ✅");
+    showToast("Parent ID copied ");
   });
 
-  // PIN reset box
+  // open modal from patient card
+  $("btnOpenPin")?.addEventListener("click", () => openModal("pinModal"));
+
+  // ---- PIN reset (modal)
   const btnReset = $("btnResetPin");
   const pinValue = $("newPin");
   const copyPinBtn = $("copyPin");
@@ -213,7 +242,7 @@ async function loadOverview() {
       if (hideBtn) hideBtn.disabled = false;
       if (pinHint) pinHint.textContent = "Give this PIN to the child now. It won’t be shown again.";
 
-      showToast("PIN reset ✅ (shown one-time)");
+      showToast("PIN reset  (shown one-time)");
     } catch (e) {
       console.error(e);
       showToast("Reset failed.");
@@ -227,7 +256,7 @@ async function loadOverview() {
     const text = pinValue?.textContent || "";
     if (!text || text === "—") return;
     await copyText(text);
-    showToast("PIN copied ✅");
+    showToast("PIN copied ");
   });
 
   hideBtn?.addEventListener("click", () => {
@@ -238,39 +267,29 @@ async function loadOverview() {
     showToast("PIN hidden");
   });
 
-  // optional refresh button if exists
-  $("btnRefresh")?.addEventListener("click", async () => {
-    showToast("Refreshing…");
-    await loadOverview();
-  });
-
   return { ref, data: d };
 }
 
 /* ---------------- exported entry (used by PD.js) ---------------- */
 export async function initOverview() {
-  // Enable popups (risk info + trigger info)
   initInfoPopups();
+  initModalClose();
 
   const loaded = await loadOverview();
   if (!loaded) return;
 
-  // ✅ Run ML widgets only if their elements exist
   try {
     const ref = loaded.ref;
     const childDocId = ref.id;
 
-    // fallback ID for history queries
     const childIdValue =
       document.getElementById("ovChildID")?.textContent?.trim() ||
       new URLSearchParams(window.location.search).get("childId") ||
       childDocId;
 
-    // import fresh to avoid caching during tab switching
     const trendMod = await import(`../JS/mlTrend.js?v=${Date.now()}`);
     const trigMod = await import(`../JS/mlTriggers.js?v=${Date.now()}`);
 
-    // 30 days window
     await trendMod.initTrendML({ childDocId, childIdValue, windowDays: 30 });
     await trigMod.initTriggerML({ childDocId, childIdValue, windowDays: 30 });
 

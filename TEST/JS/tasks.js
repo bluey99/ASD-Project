@@ -128,17 +128,100 @@ function parseTaskDate(displayWhen) {
   return isNaN(d2.getTime()) ? new Date(0) : d2;
 }
 
-// display-only mapping
+/* =========================
+   display-only mapping
+   ========================= */
 function normalizeStatusForUI(status) {
   const s = String(status || "").trim().toUpperCase();
-  if (s === "ASSIGNED") return "pending";
+
+  // ✅ your UI expects: pending / done
   if (!s) return "pending";
-  return String(status).toLowerCase();
+  if (s === "ASSIGNED") return "pending";
+
+  // ✅ treat any “completed” as done (this fixes the yellow dot issue)
+  if (s === "DONE" || s === "COMPLETED" || s === "COMPLETE" || s === "FINISHED")
+    return "done";
+
+  // fallback
+  return s.toLowerCase();
 }
+
 function normalizeAssignedByForUI(creatorType) {
   const t = String(creatorType || "").trim().toUpperCase();
   if (t === "THERAPIST") return "therapist";
-  return "me";
+  return "parent";
+}
+
+/* =========================
+   history -> task mapping
+   ========================= */
+
+/**
+ * Extract task title from history.situation
+ * example: "Task: New choice at school"  => "New choice at school"
+ */
+function extractTaskTitleFromSituation(situation) {
+  const s = String(situation || "").trim();
+  if (!s) return null;
+
+  // allow variants: "Task:" / "task:" / "Task -"
+  const m = s.match(/^task\s*[:\-]\s*(.+)$/i);
+  if (m && m[1]) return m[1].trim();
+
+  // fallback: return full situation
+  return s;
+}
+
+/**
+ * Reads children/{childDocId}/history and returns:
+ * Map<titleLower, { mood, intensity, timestamp }>
+ * Only for docs where id === "task"
+ */
+async function fetchTaskHistoryMap(childDocId) {
+  try {
+    const histRef = collection(db, "children", childDocId, "history");
+    const snap = await getDocs(histRef);
+
+    const map = new Map();
+
+    snap.forEach((ds) => {
+      const h = ds.data() || {};
+
+      // ✅ identify tasks by "id" field == "task"
+      if (String(h.id || "").trim().toLowerCase() !== "task") return;
+
+      const title = extractTaskTitleFromSituation(h.situation);
+      if (!title) return;
+
+      const key = title.toLowerCase();
+
+      const ts = h.timestamp?.toDate
+        ? h.timestamp.toDate()
+        : h.timestamp
+        ? new Date(h.timestamp)
+        : null;
+
+      const mood = h.feeling || "--";
+      const intensity = (h.intensity ?? "--");
+
+      // ✅ if multiple logs exist for same task title -> keep latest
+      const prev = map.get(key);
+      const prevTime = prev?.timestamp ? new Date(prev.timestamp) : null;
+      if (!prev || (ts && (!prevTime || ts > prevTime))) {
+        map.set(key, {
+          mood,
+          intensity,
+          timestamp: ts ? ts.toISOString() : null,
+          _rawDocId: ds.id,
+        });
+      }
+    });
+
+    return map;
+  } catch (e) {
+    console.error("fetchTaskHistoryMap error:", e);
+    return new Map();
+  }
 }
 
 /* ---------- state ---------- */
@@ -164,14 +247,42 @@ async function fetchTasks(childNumericId) {
       title: d.taskName || "",
       assignedBy: normalizeAssignedByForUI(d.creatorType),
       status: normalizeStatusForUI(d.status),
-      mood: d.mood || "--",
-      intensity: d.intensity || "--",
+
+      // ⛔ do NOT trust mood/intensity here anymore (will be filled from history)
+      mood: "--",
+      intensity: "--",
+
       note: d.discussionPrompts || "",
       _dateObj: parseTaskDate(displayWhen),
     });
   });
 
   return rows;
+}
+
+/**
+ * Enrich tasksRows with mood/intensity from child history.
+ * Match rule:
+ * - history.id === "task"
+ * - match by history.situation title "Task: <taskName>" (case-insensitive)
+ */
+async function enrichTasksFromHistory(childDocId, rows) {
+  const histMap = await fetchTaskHistoryMap(childDocId);
+
+  return rows.map((t) => {
+    const key = String(t.title || "").trim().toLowerCase();
+    const found = histMap.get(key);
+
+    // only fill if found
+    if (found) {
+      return {
+        ...t,
+        mood: found.mood ?? "--",
+        intensity: found.intensity ?? "--",
+      };
+    }
+    return t;
+  });
 }
 
 /* ---------- UI shell ---------- */
@@ -227,7 +338,7 @@ function renderShell() {
                 <th>date</th>
                 <th>title</th>
                 <th class="tk-col-assigned">assigned by</th>
-                <th>status</th>
+                <th class="tk-col-status">status</th>
                 <th>mood</th>
                 <th>intensity</th>
                 <th>note</th>
@@ -331,7 +442,10 @@ function renderTable(childDocId) {
           <td>${t.date || "—"}</td>
           <td>${t.title || "—"}</td>
           <td class="tk-assigned-cell">${t.assignedBy || "—"}</td>
-          <td><span class="status-dot ${dotClass}"></span>${t.status || "—"}</td>
+          <td class="tk-status-cell">
+            <span class="status-dot ${dotClass}"></span>
+            <span class="tk-status-text">${t.status || "—"}</span>
+          </td>
           <td>${t.mood || "—"}</td>
           <td>${t.intensity || "—"}</td>
           <td>${t.note || "—"}</td>
@@ -397,7 +511,15 @@ async function loadAndRender() {
   }
 
   if (subtitle) subtitle.textContent = "Loading…";
-  tasksRows = await fetchTasks(childNumericId);
+
+  // 1) tasks from tasks collection
+  let rows = await fetchTasks(childNumericId);
+
+  // 2) ✅ enrich mood/intensity from children/{child}/history where id == "task"
+  rows = await enrichTasksFromHistory(childDocId, rows);
+
+  tasksRows = rows;
+
   renderTable(childDocId);
 }
 
@@ -461,11 +583,11 @@ function bindUIOnce() {
       const rs = getReadSet(childDocId);
       markRead(childDocId, docRef.id, rs);
 
-      alert("Task added ✅");
+      alert("Task added ");
       showList();
       await loadAndRender();
     } catch (err) {
-      console.error("❌ add task failed:", err);
+      console.error(" add task failed:", err);
       alert(`Task NOT saved to Firestore.\n\nError: ${err?.message || err}`);
     } finally {
       if (saveBtn) saveBtn.disabled = false;
@@ -491,9 +613,11 @@ export async function refreshTasksDot() {
   const childNumericId = await getChildNumericId(childDocId);
   if (!childNumericId) return;
 
-  const rows = await fetchTasks(childNumericId);
-  const readSet = getReadSet(childDocId);
+  // tasks rows + enrich from history (so dot logic still OK)
+  let rows = await fetchTasks(childNumericId);
+  rows = await enrichTasksFromHistory(childDocId, rows);
 
+  const readSet = getReadSet(childDocId);
   const anyUnread = rows.some((r) => !readSet.has(r.id));
   setTabDot("tasksDot", anyUnread);
 }

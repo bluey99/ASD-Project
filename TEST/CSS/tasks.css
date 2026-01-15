@@ -220,4 +220,16 @@
 .tk-col-assigned { width: 140px; }
 .tk-assigned-cell { white-space: nowrap; }
 
+/* make status column wider */
+.tk-col-status { width: 140px; }
+
+/* keep dot + status text in same row */
+.tk-status-cell{
+  display:flex;
+  align-items:center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+
 
